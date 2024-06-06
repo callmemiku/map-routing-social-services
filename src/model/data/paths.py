@@ -1,10 +1,13 @@
+"""
+Имена файлов и пути к данным внутри контейнера ml.
+"""
 from pathlib import Path
 
 RAW_FILES = Path("/var/data/raw")
 NPY_FILES = Path("/var/data/npy")
 
 DENIALS = "6. Плановые-Внеплановые отключения 01.10.2023-30.04.2023.xlsx"
-MOEK = "7. Схема подключений МОЭК.xlsx"
+CONNECTIONS = "7. Схема подключений МОЭК.xlsx"
 ASUPR = "8. Данные АСУПР с диспетчерскими ОДС.xlsx"
 BTI = "9. Выгрузка БТИ.xlsx"
 ODPU = "11.Выгрузка_ОДПУ_отопление_ВАО_20240522.xlsx"

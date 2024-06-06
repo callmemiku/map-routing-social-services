@@ -2,5 +2,7 @@
 
 data/raw/**/*
 !data/raw/.gitkeep
+data/npy/*.npy
+data/npy/*.pkl
 
 **/__pycache__/**/*
