@@ -1,0 +1,21 @@
+version: '3.7'
+
+services:
+  ml:
+    build: "build/model"
+    user: "${USERID}"
+    stdin_open: true
+    tty: true
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - TERM=xterm-256color
+      - HOME=/tmp
+    volumes:
+      - ./src/model:/var/model
+      - ./data:/var/data
+    working_dir: /var/model
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]

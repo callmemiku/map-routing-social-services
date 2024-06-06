@@ -1,0 +1,6 @@
+.idea/
+
+data/raw/**/*
+!data/raw/.gitkeep
+
+**/__pycache__/**/*
