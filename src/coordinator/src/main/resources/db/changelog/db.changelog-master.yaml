@@ -1,0 +1,122 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0
+      author: me
+      changes:
+        - createTable:
+            tableName: hello
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: hello
+                  type: varchar
+  - changeSet:
+      id: 1
+      author: me
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: asupr_data
+      changes:
+        - createTable:
+            tableName: asupr_data
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: id_uu
+                  type: bigint
+                  remarks: Некий ID УУ
+                  constraints:
+                    nullable: false
+              - column:
+                  name: address
+                  type: varchar
+                  constraints:
+                    nullable: false
+              - column:
+                  name: address_full
+                  type: varchar
+                  constraints:
+                    nullable: false
+              - column:
+                  name: region
+                  type: varchar
+                  constraints:
+                    nullable: false
+              - column:
+                  name: unom
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: building_group
+                  type: varchar
+                  constraints:
+                    nullable: false
+              - column:
+                  name: ods_identification
+                  type: varchar
+              - column:
+                  name: ods_address
+                  type: varchar
+              - column:
+                  name: consumer
+                  type: varchar
+              - column:
+                  name: warm_point_id
+                  type: varchar
+  - changeSet:
+      id: 3
+      author: me
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: odpu_data
+      changes:
+        - createTable:
+            tableName: odpu_data
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: unom
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: unad
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: material
+                  type: varchar
+              - column:
+                  name: building_usage_type
+                  type: varchar
+              - column:
+                  name: building_class
+                  type: varchar
+              - column:
+                  name: building_type
+                  type: varchar
+              - column:
+                  name: square
+                  type: numeric

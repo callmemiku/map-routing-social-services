@@ -1,0 +1,24 @@
+spring:
+  servlet:
+    multipart:
+      enabled: true
+      location: ${java.io.tmpdir}
+      max-file-size: 200MB
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+    url: jdbc:postgresql://localhost:5432/db_algorithm?currentSchema=algorithm
+
+  application:
+    name: coordinator
+
+
+
+app:
+  web-client:
+    connection-timeout: 5000 #millis
+
+logging:
+  level:
+    ru.moscow.hackathon.coordinator: DEBUG
