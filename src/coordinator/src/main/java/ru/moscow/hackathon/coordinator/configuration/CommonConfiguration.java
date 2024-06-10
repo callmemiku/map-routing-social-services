@@ -23,7 +23,7 @@ public class CommonConfiguration {
     @PostConstruct
     public void init() {
         var process = new ProcessBuilder(
-                "python3", "-m", "pip", "install", "pandas"
+                "python3", "-m", "pip", "install", "pandas", "openpyxl"
         ).redirectErrorStream(
                 true
         ).start();

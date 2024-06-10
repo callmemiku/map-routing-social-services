@@ -11,6 +11,7 @@ RUN \
     apt-get -yqq install    \
         python3 python3-pip \
         openjdk-17-jdk -y;
-COPY --from=builder /app/target/*.jar /app/*.jar
+COPY --from=builder /app/target/*.jar /app/app.jar
+COPY /src/main/resources/converter.py /app/converter.py
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app/*.jar"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

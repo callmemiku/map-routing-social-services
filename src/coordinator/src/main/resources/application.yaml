@@ -18,6 +18,7 @@ spring:
 
 
 app:
+  run-from-jar: ${IS_RUN_FROM_JAR}
   web-client:
     connection-timeout: 5000 #millis
 
