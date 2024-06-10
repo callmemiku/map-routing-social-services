@@ -32,7 +32,19 @@ public class BtiDataRepository implements CoordinatedRepository {
         Mono.just(rows)
                 .map(it ->
                         jdbcTemplate.batchUpdate(
-                                "insert into bti_data(id, unom, unad, material, building_usage_type, building_class, building_type, square) VALUES (?,?,?,?,?,?,?,?)",
+                                """
+                                    insert into bti_data(
+                                        id,
+                                        street,
+                                        address_number_type,
+                                        address_number, unom,
+                                        exterior_wall_material,
+                                        destination,
+                                        building_class,
+                                        full_square
+                                    )
+                                     VALUES (?,?,?,?,?,?,?,?,?)
+                                    """,
                                 new BatchPreparedStatementSetter() {
                                     @Override
                                     public void setValues(
@@ -41,22 +53,14 @@ public class BtiDataRepository implements CoordinatedRepository {
                                     ) throws SQLException {
                                         var current = it.get(i);
                                         ps.setObject(1, UUID.randomUUID());
-                                        ps.setLong(2, Long.parseLong(current[0]));
-                                        ps.setLong(3, Long.parseLong(current[1]));
+                                        ps.setString(2, current[0]);
+                                        ps.setString(3, current[1]);
                                         ps.setString(4, current[2]);
                                         ps.setString(5, current[3]);
                                         ps.setString(6, current[4]);
                                         ps.setString(7, current[5]);
-                                        var square = Optional.ofNullable(current[6])
-                                                .map(it -> it.replace(",", "."))
-                                                .map(Double::parseDouble)
-                                                .orElse(null);
-                                        if (square == null) {
-                                            ps.setNull(8, Types.NUMERIC);
-                                        } else {
-                                            ps.setDouble(8, square);
-                                        }
-
+                                        ps.setString(8, current[6]);
+                                        setDouble(ps, 9, current[7]);
                                     }
 
                                     @Override

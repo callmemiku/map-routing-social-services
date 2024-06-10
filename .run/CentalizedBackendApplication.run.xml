@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="CentalizedBackendApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="coordinator" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="ru.moscow.hackathon.coordinator.CentalizedBackendApplication" />
+    <option name="VM_PARAMETERS" value="-Xmx15g" />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <option name="SHORTEN_COMMAND_LINE" value="NONE" />
+    <envs>
+      <env name="DB_URL" value="localhost:5432/postgres" />
+    </envs>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

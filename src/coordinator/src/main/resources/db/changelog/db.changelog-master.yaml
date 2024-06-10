@@ -1,5 +1,5 @@
 databaseChangeLog:
-  - changeSet:
+  - changeSet: #ignore
       id: 0
       author: me
       changes:
@@ -16,7 +16,7 @@ databaseChangeLog:
               - column:
                   name: hello
                   type: varchar
-  - changeSet:
+  - changeSet: #ok_50 #java ok
       id: 1
       author: me
       preConditions:
@@ -57,7 +57,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: unom
-                  type: bigint
+                  type: varchar
                   constraints:
                     nullable: false
               - column:
@@ -77,8 +77,8 @@ databaseChangeLog:
               - column:
                   name: warm_point_id
                   type: varchar
-  - changeSet:
-      id: 3
+  - changeSet: #ok
+      id: 2
       author: me
       preConditions:
         - onFail: MARK_RAN
@@ -96,27 +96,445 @@ databaseChangeLog:
                     primaryKey: true
                     nullable: false
               - column:
+                  name: consumer
+                  remarks: (4)
+                  type: varchar
+              - column:
+                  name: building_group
+                  type: varchar
+                  remarks: (5)
+                  constraints:
+                    nullable: false
+              - column:
                   name: unom
-                  type: bigint
+                  type: varchar
+                  remarks: (6)
                   constraints:
                     nullable: false
               - column:
-                  name: unad
-                  type: bigint
+                  name: address
+                  remarks: (7)
+                  type: varchar
+              - column:
+                  name: heat_counter_number
+                  remarks: (10)
+                  type: varchar
+              - column:
+                  name: measurement_date
+                  remarks: (12)
+                  type: varchar
+              - column:
+                  name: heating_volume_in
+                  remarks: (14)
+                  type: numeric
+              - column:
+                  name: heating_volume_out
+                  remarks: (15)
+                  type: numeric
+              - column:
+                  name: heat_leakage
+                  remarks: (17)
+                  type: numeric
+              - column:
+                  name: supply_water_temp
+                  remarks: (18)
+                  type: numeric
+              - column:
+                  name: return_water_temp
+                  remarks: (19)
+                  type: numeric
+              - column:
+                  name: heat_counter_hours
+                  remarks: (20)
+                  type: numeric
+              - column:
+                  name: energy_consumption
+                  remarks: (21)
+                  type: numeric
+              - column:
+                  name: heat_counter_error
+                  remarks: (22)
+                  type: varchar
+  - changeSet: #ok #java ok
+      id: "3"
+      author: "me"
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: bti_data
+      changes:
+        - createTable:
+            tableName: bti_data
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: street
+                  type: varchar
+                  remarks: Улица (5)
+              - column:
+                  name: address_number_type
+                  type: varchar
+                  remarks: Тип номера дома (6)
+              - column:
+                  name: address_number
+                  type: varchar
+                  remarks: Номер дома (7)
+              - column:
+                  name: unom
+                  type: varchar
+                  remarks: (11)
                   constraints:
                     nullable: false
               - column:
-                  name: material
+                  name: exterior_wall_material
                   type: varchar
+                  remarks: Материал (13)
               - column:
-                  name: building_usage_type
+                  name: destination
                   type: varchar
+                  remarks: Назначение (14)
               - column:
                   name: building_class
                   type: varchar
+                  remarks: Класс (15)
+              - column:
+                  name: full_square
+                  type: numeric
+                  remarks: Общая площадь (19)
+  - changeSet: #ok
+        id: 4
+        author: me
+        preConditions:
+          - onFail: MARK_RAN
+          - not:
+              tableExists:
+                tableName: ods_data
+        changes:
+          - createTable:
+              tableName: ods_data
+              columns:
+                - column:
+                    name: id
+                    type: uuid
+                    constraints:
+                      primaryKey: true
+                      nullable: false
+                - column:
+                    name: id_yy
+                    type: varchar
+                    remarks: ID УУ (0)
+                - column:
+                    name: unom
+                    type: varchar
+                    remarks: UNOM (4)
+                - column:
+                    name: building_group
+                    type: varchar
+                    remarks: Группа (5)
+                - column:
+                    name: ods_number
+                    type: varchar
+                    remarks: Номер ОДС (6)
+                - column:
+                    name: ods_address
+                    type: varchar
+                    remarks: Адрес ОДС (7)
+                - column:
+                    name: consumer
+                    type: varchar
+                    remarks: Потребитель (8)
+                - column:
+                    name: heating_station
+                    type: varchar
+                    remarks: ЦТП (9)
+  - changeSet: #ok
+      id: 5
+      author: me
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: moek_connection_data
+      changes:
+        - createTable:
+            tableName: moek_connection_data
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: heating_station_number
+                  type: varchar
+                  remarks: Номер ТП (1)
+              - column:
+                  name: heating_station_type
+                  type: varchar
+                  remarks: Вид ТП (3)
+              - column:
+                  name: heat_source
+                  type: varchar
+                  remarks: Источник теплоснабжения (5)
+              - column:
+                  name: city_district
+                  type: varchar
+                  remarks: Административный округ (6)
+              - column:
+                  name: address
+                  type: varchar
+                  remarks: Адрес строения (10)
+              - column:
+                  name: thermal_load_hws
+                  type: numeric
+                  remarks: Тепловая нагрузка ГВС (12)
+              - column:
+                  name: thermal_load_building
+                  type: numeric
+                  remarks: Тепловая нагрузка отопления строения (13)
+  - changeSet: #ok
+      id: 6
+      author: me
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: performance_characteristics_data
+      changes:
+        - createTable:
+            tableName: performance_characteristics_data
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: unom
+                  type: varchar
+                  remarks: Адрес помещения (MDK) (1)
+              - column:
+                  name: full_square
+                  type: numeric
+                  remarks: Общая площадь (9)
+              - column:
+                  name: full_live_square
+                  type: numeric
+                  remarks: Общая площадь жилых (10)
+              - column:
+                  name: exterior_wall_material
+                  type: varchar
+                  remarks: Материалы стен (13)
+              - column:
+                  name: roof_material
+                  type: varchar
+                  remarks: Материалы стен (18)
+  - changeSet: #ok
+      id: 8
+      author: me
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: events
+      changes:
+        - createTable:
+            tableName: events
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: description
+                  type: varchar
+                  remarks: Наименование (0)
+              - column:
+                  name: system
+                  type: varchar
+                  remarks: Источник (1)
+              - column:
+                  name: external_created
+                  type: varchar
+                  remarks: Дата создания во внешней системе (2)
+              - column:
+                  name: completed
+                  type: varchar
+                  remarks: Дата закрытия (3)
+              - column:
+                  name: region_name
+                  type: varchar
+                  remarks: Округ (4)
+              - column:
+                  name: unom
+                  type: varchar
+                  remarks: УНОМ (5)
+              - column:
+                  name: address
+                  type: varchar
+                  remarks: Адрес (6)
+              - column:
+                  name: external_completed
+                  type: varchar
+                  remarks: Дата и время завершения события во внешней системе-источнике (7)
+  - changeSet: #ok
+      id: 9
+      author: me
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: walls_materials_data
+      changes:
+        - createTable:
+            tableName: walls_materials_data
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: typical_series
+                  remarks: Типовая строительная серия (0)
+                  type: varchar
+              - column:
+                  name: exterior_wall_material
+                  remarks: (1)
+                  type: varchar
+              - column:
+                  name: thickness_mm
+                  type: int
+                  remarks: (2)
+              - column:
+                  name: outer_layer_insulation
+                  remarks: (3)
+                  type: numeric
+              - column:
+                  name: inner_layer_insulation
+                  remarks: (4)
+                  type: numeric
+              - column:
+                  name: calc_heat_transfer_resistance
+                  remarks: (5)
+                  type: numeric
+  - changeSet:
+      id: "10"
+      author: "me"
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: address_registry_data
+      changes:
+        - createTable:
+            tableName: address_registry_data
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: unom
+                  type: varchar
+                  remarks: (4)
+              - column:
+                  name: build_year
+                  type: int
+              - column:
+                  name: repair_year
+                  type: int
+              - column:
+                  name: geoData
+                  type: varchar
+                  remarks: (42)
+              - column:
+                  name: geodata_center
+                  type: varchar
+                  remarks: (43)
+  - changeSet: #ok
+      id: 11
+      author: me
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: disconnections_data
+      changes:
+        - createTable:
+            tableName: disconnections_data
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: unom
+                  type: varchar
+                  remarks: (8)
+              - column:
+                  name: address
+                  type: varchar
+                  remarks: (9)
+              - column:
+                  name: disconnect_date
+                  type: varchar
+                  remarks: (5)
+  - changeSet:
+      id: 12
+      author: "me"
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: power_efficiency_data
+      changes:
+        - createTable:
+            tableName: power_efficiency_data
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: building
+                  type: varchar
+                  remarks: Здание (0)
+              - column:
+                  name: energy_class
+                  type: varchar
+                  remarks: Класс энергоэффективности (6)
+              - column:
+                  name: full_square
+                  type: numeric
+                  remarks: Общая площадь (2)
+              - column:
+                  name: employees_number
+                  type: int
+                  remarks: Среднее количество работников (3)
               - column:
                   name: building_type
                   type: varchar
+                  remarks: Тип учреждения / Тип строения (4)
               - column:
-                  name: square
+                  name: building_wear
                   type: numeric
+                  remarks: Фактический износ здания, % (9)
+              - column:
+                  name: commissioning_year
+                  type: varchar
+                  remarks: Год ввода здания в эксплуатацию (11)

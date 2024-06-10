@@ -31,7 +31,7 @@ public class InputProcessingController {
             @RequestPart("file") MultipartFile file,
             @RequestParam("type") OperationType type,
             @RequestParam("ignore-lines") Integer ignoreLines
-            ) {
+    ) {
         return processor.processFile(
                 file,
                 type,
