@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
+import ru.moscow.hackathon.coordinator.dto.MultisheetXLSXDTO;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,14 +20,17 @@ public class PythonScriptCaller {
     @SneakyThrows({IOException.class, InterruptedException.class})
     public void convert(
             String input,
-            String output
+            String output,
+            MultisheetXLSXDTO.SheetDTO sheetDTO
     ) {
         File file;
         if (jar)
             file = new File("app/" + SCRIPT_NAME);
         else
             file = ResourceUtils.getFile("classpath:" + SCRIPT_NAME);
-        var process = new ProcessBuilder(
+        Process process;
+        if (sheetDTO == null)
+            process = new ProcessBuilder(
                 "python3",
                 file.getAbsolutePath(),
                 "-i",
@@ -35,6 +39,19 @@ public class PythonScriptCaller {
                 output
         ).redirectErrorStream(true)
                 .start();
+        else {
+            process = new ProcessBuilder(
+                    "python3",
+                    file.getAbsolutePath(),
+                    "-i",
+                    input,
+                    "-o",
+                    output,
+                    "-n",
+                    sheetDTO.getSheetName()
+            ).redirectErrorStream(true)
+                    .start();
+        }
         int rc = process.waitFor();
         if (rc != 0) {
             throw new IllegalStateException("RC from python code is not 0");

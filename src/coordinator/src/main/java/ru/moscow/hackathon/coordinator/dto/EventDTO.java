@@ -15,7 +15,7 @@ public class EventDTO {
     SourceType type;
     LocalDateTime registrationDatetime, resolvedDatetime;
     String region;
-    Long houseUniqueNumber; //УНОМ
+    String unom; //УНОМ
     String address;
     LocalDateTime eventEndedDatetime;
 }

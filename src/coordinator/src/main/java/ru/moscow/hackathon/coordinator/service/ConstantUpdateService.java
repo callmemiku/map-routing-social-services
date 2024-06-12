@@ -19,9 +19,6 @@ public class ConstantUpdateService {
     WebClient webClient;
 
     public Mono<CurrentSituationDTO> ask() {
-
-
-
         return webClient.post()
                 .uri("")
                 .bodyValue(new EventDTO())

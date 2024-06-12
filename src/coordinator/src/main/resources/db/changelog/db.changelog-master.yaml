@@ -316,9 +316,17 @@ databaseChangeLog:
                   constraints:
                     primaryKey: true
               - column:
-                  name: unom
+                  name: address
                   type: varchar
                   remarks: Адрес помещения (MDK) (1)
+              - column:
+                  name: unom
+                  type: varchar
+                  remarks: UNOM (2)
+              - column:
+                  name: seria
+                  type: varchar
+                  remarks: (5)
               - column:
                   name: full_square
                   type: numeric
@@ -332,9 +340,22 @@ databaseChangeLog:
                   type: varchar
                   remarks: Материалы стен (13)
               - column:
+                  name: accident_rate
+                  type: varchar
+                  remarks: (14)
+              - column:
                   name: roof_material
                   type: varchar
                   remarks: Материалы стен (18)
+              - column:
+                  name: fond_type
+                  type: varchar
+                  remarks: (20)
+              - column:
+                  name: status_mkd
+                  type: varchar
+                  remarks: (21)
+
   - changeSet: #ok
       id: 8
       author: me
@@ -449,12 +470,6 @@ databaseChangeLog:
                   type: varchar
                   remarks: (4)
               - column:
-                  name: build_year
-                  type: int
-              - column:
-                  name: repair_year
-                  type: int
-              - column:
                   name: geoData
                   type: varchar
                   remarks: (42)
@@ -538,3 +553,237 @@ databaseChangeLog:
                   name: commissioning_year
                   type: varchar
                   remarks: Год ввода здания в эксплуатацию (11)
+  - changeSet:
+      id: 13
+      author: me
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: walls_materials_dictionary
+      changes:
+        - createTable:
+            tableName: walls_materials_dictionary
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: typical_series
+                  type: varchar(255)
+              - column:
+                  name: exterior_wall_material
+                  type: varchar(255)
+              - column:
+                  name: thickness
+                  type: numeric
+              - column:
+                  name: outer_layer
+                  type: numeric
+              - column:
+                  name: insulation_layer
+                  type: numeric
+              - column:
+                  name: inner_layer
+                  type: numeric
+              - column:
+                  name: calc_heat_transfer_resistance
+                  type: numeric
+  - changeSet:
+      id: 14
+      author: me
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: col_781_data
+      changes:
+        - createTable:
+            tableName: col_781_data
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: code
+                  type: varchar(255)
+              - column:
+                  name: description
+                  type: varchar(255)
+  - changeSet:
+      id: 15
+      author: me
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: col_758_data
+      changes:
+        - createTable:
+            tableName: col_758_data
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: code
+                  type: varchar(255)
+              - column:
+                  name: description
+                  type: varchar(255)
+  - changeSet:
+      id: 20
+      author: me
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: col_769_data
+      changes:
+        - createTable:
+            tableName: col_769_data
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: code
+                  type: varchar(255)
+              - column:
+                  name: description
+                  type: varchar(255)
+  - changeSet:
+      id: 16
+      author: me
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: col_770_data
+      changes:
+        - createTable:
+            tableName: col_770_data
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: code
+                  type: varchar(255)
+              - column:
+                  name: description
+                  type: varchar(255)
+  - changeSet:
+      id: 17
+      author: me
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: col_775_data
+      changes:
+        - createTable:
+            tableName: col_775_data
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: code
+                  type: varchar(255)
+              - column:
+                  name: description
+                  type: varchar(255)
+  - changeSet:
+      id: 18
+      author: me
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: col_2463_data
+      changes:
+        - createTable:
+            tableName: col_2463_data
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: code
+                  type: varchar(255)
+              - column:
+                  name: description
+                  type: varchar(255)
+  - changeSet:
+      id: 19
+      author: me
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: col_3163_data
+      changes:
+        - createTable:
+            tableName: col_3163_data
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: code
+                  type: varchar(255)
+              - column:
+                  name: description
+                  type: varchar(255)
+  - changeSet:
+      id: 21
+      author: me
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: event_to_unom_relation
+      changes:
+        - createTable:
+            tableName: event_to_unom_relation
+            columns:
+              - column:
+                  name: event_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: unom
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: order_relation
+                  type: int
+                  constraints:
+                    nullable: false

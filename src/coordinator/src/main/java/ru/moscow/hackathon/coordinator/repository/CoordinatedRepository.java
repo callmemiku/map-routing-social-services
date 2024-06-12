@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface CoordinatedRepository {
 
-    void handle(List<String[]> rows);
+    void handle(OperationType type, List<String[]> rows);
     OperationType myType();
 
     default void setDouble(
@@ -41,6 +41,24 @@ public interface CoordinatedRepository {
                 .orElse(null);
         if (number == null) {
             ps.setNull(position, Types.BIGINT);
+        } else {
+            ps.setLong(position, number);
+        }
+    }
+
+    default void setInt(
+            PreparedStatement ps,
+            Integer position,
+            String source
+    ) throws SQLException {
+        var number = Optional.ofNullable(source)
+                .map(it -> it.replace(",", ""))
+                .map(it -> it.split("\\.")[0])
+                .filter(it -> !it.isEmpty() && !it.isBlank())
+                .map(Integer::parseInt)
+                .orElse(null);
+        if (number == null) {
+            ps.setNull(position, Types.INTEGER);
         } else {
             ps.setLong(position, number);
         }

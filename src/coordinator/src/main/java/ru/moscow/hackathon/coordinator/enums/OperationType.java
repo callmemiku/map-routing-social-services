@@ -39,7 +39,7 @@ public enum OperationType {
     ),
     PERFORMANCE_DATA(
             22,
-            List.of(1, 9, 10, 13, 18)
+            List.of(1, 2, 5, 9, 10, 13, 14, 18, 20, 21)
     ),
     WALLS_MATERIALS_DATA(
             6,
@@ -56,8 +56,19 @@ public enum OperationType {
     POWER_EFFICIENCY_DATA(
             12,
             List.of(0, 2, 3, 4, 6, 9, 11)
-    );
+    ),
+    WALLS_DICTIONARY(
+            7,
+            IntStream.rangeClosed(0, 6).boxed().toList()
+    ),
+    COL_781_DICTIONARY(2, List.of(0, 1)),
+    COL_758_DICTIONARY(2, List.of(0, 1)),
+    COL_769_DICTIONARY(2, List.of(0, 1)),
+    COL_770_DICTIONARY(2, List.of(0, 1)),
+    COL_775_DICTIONARY(2, List.of(0, 1)),
+    COL_2463_DICTIONARY(2, List.of(0, 1)),
+    COL_3163_DICTIONARY(2, List.of(0, 1));
 
     Integer rowWidth; //original
-    List<Integer> cells; //from 0 to N
+    List<Integer> cells; //cells needed to be included, from 0 to N
 }

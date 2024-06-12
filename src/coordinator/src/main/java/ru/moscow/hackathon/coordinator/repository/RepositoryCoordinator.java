@@ -33,11 +33,11 @@ public class RepositoryCoordinator {
                     var repository = repositories.get(type);
                     for (long i = 0; i < rows.size() / batchSize + 1; i++) {
                         repository.handle(
+                                type,
                                 rows.stream()
                                 .skip(i * batchSize)
                                 .limit(batchSize)
-                                .toList()
-                        );
+                                .toList());
                     }
                 }).subscribe();
     }

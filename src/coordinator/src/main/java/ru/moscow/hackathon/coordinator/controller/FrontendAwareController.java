@@ -8,20 +8,22 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
-import ru.moscow.hackathon.coordinator.dto.CurrentSituationDTO;
-import ru.moscow.hackathon.coordinator.service.ConstantUpdateService;
+import ru.moscow.hackathon.coordinator.dto.FENotificationDTO;
+import ru.moscow.hackathon.coordinator.service.FrontendService;
+
+import java.util.List;
 
 @RestController
 @Slf4j
-@RequestMapping("/live-update")
+@RequestMapping("/update")
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class FrontendAwareController {
 
-    ConstantUpdateService service;
+    FrontendService service;
 
     @GetMapping("/gather")
-    public Mono<CurrentSituationDTO> gatherCurrentSituation() {
-        return service.ask();
+    public Mono<List<FENotificationDTO>> gather() {
+        return service.response();
     }
 }

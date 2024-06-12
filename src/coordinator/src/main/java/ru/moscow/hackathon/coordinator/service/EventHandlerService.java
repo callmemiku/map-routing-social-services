@@ -23,7 +23,8 @@ public class EventHandlerService {
         return Mono.just(
                         new StatusDTO(
                                 HttpStatus.OK,
-                                "Событие принято в обработку."
+                                "Событие принято в обработку.",
+                                null
                         )
                 );
     }

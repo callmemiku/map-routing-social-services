@@ -1,4 +1,4 @@
-package ru.moscow.hackathon.coordinator.repository;
+package ru.moscow.hackathon.coordinator.repository.implementations;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -10,12 +10,11 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 import ru.moscow.hackathon.coordinator.enums.CustomSchedulers;
 import ru.moscow.hackathon.coordinator.enums.OperationType;
+import ru.moscow.hackathon.coordinator.repository.CoordinatedRepository;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -27,7 +26,7 @@ public class OdpuDataRepository implements CoordinatedRepository {
     JdbcTemplate jdbcTemplate;
 
     @Override
-    public void handle(List<String[]> rows) {
+    public void handle(OperationType type, List<String[]> rows) {
         log.debug("[ODPU REPO] saving {} records", rows.size());
         Mono.just(rows)
                 .map(it ->
@@ -83,9 +82,8 @@ public class OdpuDataRepository implements CoordinatedRepository {
                                     }
                                 }
                         )
-                ).subscribeOn(
-                CustomSchedulers.DB_BLOCKING.getScheduler()
-        ).subscribe();
+                ).subscribeOn(CustomSchedulers.DB_BLOCKING.getScheduler())
+                .subscribe();
     }
 
     @Override

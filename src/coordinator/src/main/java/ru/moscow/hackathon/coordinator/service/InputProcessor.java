@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Mono;
+import ru.moscow.hackathon.coordinator.dto.MultisheetXLSXDTO;
 import ru.moscow.hackathon.coordinator.dto.StatusDTO;
 import ru.moscow.hackathon.coordinator.enums.AllowedFiletypes;
 import ru.moscow.hackathon.coordinator.enums.OperationType;
@@ -18,8 +19,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -36,11 +40,62 @@ public class InputProcessor {
             OperationType type,
             Integer ignoreLines
     ) {
+        return processFile(file, type, ignoreLines, null);
+    }
+
+    public Mono<StatusDTO> processFile(
+            MultipartFile file,
+            MultisheetXLSXDTO xlsx
+    ) {
+        List<StatusDTO> list = new ArrayList<>();
+
+        xlsx.getSheets()
+                .forEach(
+                        it -> processFile(file, it.getType(), 2, it).subscribe(list::add)
+                );
+
+        return Mono.just(
+                list
+        ).map(
+                lst -> {
+                    var bad = lst.stream()
+                            .filter(
+                                    it -> !it.status().is2xxSuccessful()
+                            ).toList();
+                    if (!bad.isEmpty()) {
+
+                        var errors = bad.stream().map(
+                                it -> String.format("{%s, %s}\n", it.sheetName(), it.message())
+                        ).collect(Collectors.joining());
+
+                        return new StatusDTO(
+                                HttpStatus.UNPROCESSABLE_ENTITY,
+                                String.format("Следующие страницы не сохранены: %s", errors),
+                                bad.stream().map(StatusDTO::sheetName).collect(Collectors.joining(","))
+                        );
+                    } else {
+                        return new StatusDTO(
+                                        HttpStatus.OK,
+                                        "Все страницы успешно сохранены!",
+                                        "all"
+                                );
+
+                    }
+                }
+        );
+    }
+
+    private Mono<StatusDTO> processFile(
+            MultipartFile file,
+            OperationType type,
+            Integer ignoreLines,
+            MultisheetXLSXDTO.SheetDTO sheet
+    ) {
         var fileName = String.format("buffer-%d.csv", random.nextLong());
         var buffer = new File(fileName);
 
         return Mono.just(file)
-                .map(multipartFile -> {
+                .doOnNext(multipartFile -> {
                             if (
                                     multipartFile.getOriginalFilename() == null ||
                                             EnumSet.allOf(AllowedFiletypes.class)
@@ -54,23 +109,30 @@ public class InputProcessor {
                                 var created = buffer.createNewFile();
                                 if (created) log.debug("File created");
                                 if (file.getOriginalFilename().endsWith(AllowedFiletypes.XLSX.value())) {
-                                    convertToCsv(multipartFile, buffer);
+                                    log.debug("Converting .xlsx to .csv.");
+                                    convertToCsv(multipartFile, buffer, sheet);
+                                    log.debug("Converted .xlsx to .csv.");
                                 } else {
-                                    file.transferTo(buffer);
+                                    file.transferTo(buffer.toPath());
                                 }
                             } catch (IOException e) {
-                                throw new IllegalStateException("can't handle incoming file: " + e.getMessage());
+                                throw new IllegalStateException(e.getMessage());
                             }
-                            return buffer;
                         }
                 ).map(it -> {
-                            try (var reader = new BufferedReader(new FileReader(it))) {
+                            try (var reader = new BufferedReader(new FileReader(buffer))) {
+
+                                if (ignoreLines != null && ignoreLines > 0) {
+                                    if (reader.readLine().split(";").length != type.getRowWidth())
+                                        throw new IllegalStateException("Количество колонок в хедере не совпадает с ожидаемым.");
+                                }
+
                                 var split = reader.lines()
                                         .skip(ignoreLines == null ? 0 : ignoreLines)
                                         .map(
                                                 row -> {
                                                     var strings = row.split(";");
-                                                    if (strings.length != type.getRowWidth()) {
+                                                    if (strings.length < type.getRowWidth()) {
                                                         var coolArray = new String[type.getRowWidth()];
                                                         System.arraycopy(strings, 0, coolArray, 0, strings.length);
                                                         return coolArray;
@@ -89,28 +151,30 @@ public class InputProcessor {
                                 coordinator.coordinate(type, split);
                                 return new StatusDTO(
                                         HttpStatus.OK,
-                                        "Файл успешно сохранен!"
+                                        sheet == null ? "Файл успешно сохранен!" : "Страница успешно сохранена!",
+                                        sheet == null ? null : sheet.getSheetName()
                                 );
                             } catch (IOException e) {
-                                throw new IllegalStateException("can't handle incoming file: " + e.getMessage());
+                                throw new IllegalStateException(e.getMessage());
                             }
                         }
                 ).onErrorResume(
                         e -> Mono.just(
                                 new StatusDTO(
                                         HttpStatus.BAD_GATEWAY,
-                                        "Не удалось обработать сообщение: " + e.getMessage()
+                                        "Не удалось обработать сообщение: " + e.getMessage(),
+                                        sheet == null ? null : sheet.getSheetName()
                                 )
                         )
                 ).doOnTerminate(
                         () -> {
                             var del = buffer.delete();
-                            log.debug("BUFFER DELETION: {}", del);
+                            log.debug("File buffer deletion status: {}", del);
                         }
                 );
     }
 
-    private void convertToCsv(MultipartFile file, File buffer) {
+    private void convertToCsv(MultipartFile file, File buffer, MultisheetXLSXDTO.SheetDTO sheet) {
         var fileName = String.format("temp-%d.xlsx", random.nextLong());
         var temp = new File(fileName);
         try {
@@ -120,38 +184,9 @@ public class InputProcessor {
         }
         pythonScriptCaller.convert(
                 temp.getAbsolutePath(),
-                buffer.getAbsolutePath()
+                buffer.getAbsolutePath(),
+                sheet
         );
         log.debug("temp deletion: {}", temp.delete());
-    }
-
-    @Deprecated
-    private void deprecated() {
-        /*
-        var wb = new XSSFWorkbook(temp);
-        Row row;
-        for (int i = 0; i < wb.getNumberOfSheets(); i++) {
-            var currSheet = wb.getSheetAt(i);
-            row = currSheet.getRow(0);
-            if (row.getLastCellNum() == type.getRowWidth()) {
-                for (int k = 0; k < currSheet.getLastRowNum(); k++) {
-                    log.debug("converting - SHEET: {}, ROW: {}", i, k);
-                    row = currSheet.getRow(k);
-                    var cells = type.getCells();
-                    for (int j = 0; j < cells.size(); j++) {
-                        var cell = row.getCell(cells.get(j));
-                        cell.setCellType(CellType.STRING);
-                        writer.write(cell.toString());
-                        if (j < cells.size() - 1) {
-                            writer.write(DELIMITER);
-                        } else {
-                            writer.write("\n");
-                        }
-                    }
-                }
-            }
-        }
-        writer.flush();
-        */
     }
 }
