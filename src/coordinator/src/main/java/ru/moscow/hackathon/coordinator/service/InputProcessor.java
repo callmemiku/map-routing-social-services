@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.moscow.hackathon.coordinator.dto.MultisheetXLSXDTO;
 import ru.moscow.hackathon.coordinator.dto.StatusDTO;
@@ -34,6 +35,7 @@ public class InputProcessor {
     PythonScriptCaller pythonScriptCaller;
     Random random = new Random();
     RepositoryCoordinator coordinator;
+    BatchSplitter batchSplitter;
 
     public Mono<StatusDTO> processFile(
             MultipartFile file,
@@ -75,10 +77,10 @@ public class InputProcessor {
                         );
                     } else {
                         return new StatusDTO(
-                                        HttpStatus.OK,
-                                        "Все страницы успешно сохранены!",
-                                        "all"
-                                );
+                                HttpStatus.OK,
+                                "Все страницы успешно сохранены!",
+                                "all"
+                        );
 
                     }
                 }
@@ -127,7 +129,7 @@ public class InputProcessor {
                                         throw new IllegalStateException("Количество колонок в хедере не совпадает с ожидаемым.");
                                 }
 
-                                var split = reader.lines()
+                                return reader.lines()
                                         .skip(ignoreLines == null ? 0 : ignoreLines)
                                         .map(
                                                 row -> {
@@ -148,16 +150,22 @@ public class InputProcessor {
                                                     return resultArr;
                                                 }
                                         ).toList();
-                                coordinator.coordinate(type, split);
-                                return new StatusDTO(
-                                        HttpStatus.OK,
-                                        sheet == null ? "Файл успешно сохранен!" : "Страница успешно сохранена!",
-                                        sheet == null ? null : sheet.getSheetName()
-                                );
                             } catch (IOException e) {
                                 throw new IllegalStateException(e.getMessage());
                             }
                         }
+                ).flatMapMany(
+                        split -> Flux.fromIterable(batchSplitter.toBatches(split))
+                ).parallel()
+                .map(v -> coordinator.coordinate(type, v))
+                .doOnNext(Mono::subscribe)
+                .sequential()
+                .collectList()
+                .map(any -> new StatusDTO(
+                                HttpStatus.OK,
+                                sheet == null ? "Файл успешно сохранен!" : "Страница успешно сохранена!",
+                                sheet == null ? null : sheet.getSheetName()
+                        )
                 ).onErrorResume(
                         e -> Mono.just(
                                 new StatusDTO(

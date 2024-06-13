@@ -25,5 +25,3 @@ app:
 logging:
   level:
     ru.moscow.hackathon.coordinator: DEBUG
-    reactor.netty.http.client: DEBUG
-    org.springframework.web.reactive.function.client: DEBUG

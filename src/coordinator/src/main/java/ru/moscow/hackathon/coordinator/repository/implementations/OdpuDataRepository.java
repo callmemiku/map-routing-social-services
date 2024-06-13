@@ -4,13 +4,13 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.data.util.Pair;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import ru.moscow.hackathon.coordinator.enums.OperationType;
 import ru.moscow.hackathon.coordinator.repository.CoordinatedRepository;
 import ru.moscow.hackathon.coordinator.service.WeatherGathererService;
@@ -31,10 +31,10 @@ public class OdpuDataRepository implements CoordinatedRepository {
     WeatherGathererService weather;
 
     @Override
-    public void handle(OperationType type, List<String[]> rows) {
+    public Mono<List<Pair<UUID, List<String>>>> handle(OperationType type, List<String[]> rows) {
+        List<Pair<UUID, List<String>>> storage = new ArrayList<>();
         log.debug("[ODPU REPO] saving {} records", rows.size());
-        List<Pair<UUID, String>> pairs = new ArrayList<>();
-        Mono.just(rows)
+        return Mono.just(rows)
                 .map(it ->
                         jdbcTemplate.batchUpdate(
                                 """
@@ -81,7 +81,7 @@ public class OdpuDataRepository implements CoordinatedRepository {
                                         setDouble(ps, 13, current[11]);
                                         setDouble(ps, 14, current[12]);
                                         ps.setString(15, current[13]);
-                                        pairs.add(Pair.of(id, current[5]));
+                                        storage.add(Pair.of(id, List.of(current[5])));
                                     }
 
                                     @Override
@@ -90,21 +90,15 @@ public class OdpuDataRepository implements CoordinatedRepository {
                                     }
                                 }
                         )
-                ).subscribe();
+                ).map(it -> storage);
     }
 
     @Override
-    public void doAfter(List<String[]> rows) {
-        Mono.just(
-                jdbcTemplate.query(
-                        "select id, measurement_date from odpu_data where temperature is null",
-                        (rs, rowNum) ->
-                                Pair.of(
-                                        rs.getObject(1, UUID.class),
-                                        rs.getString(2)
-                                )
-                )
-        ).map(weather::onDate)
+    public Mono<Void> doAfter(List<Pair<UUID, List<String>>> rows) {
+        return Flux.fromIterable(rows)
+                .map(it -> Pair.of(it.getFirst(), it.getSecond().get(0)))
+                .collectList()
+                .map(weather::onDate)
                 .doOnNext(it -> {
                             log.debug("[WEATHER] saving weather info for {} records", it.size());
                             jdbcTemplate.batchUpdate(
@@ -116,7 +110,6 @@ public class OdpuDataRepository implements CoordinatedRepository {
                                             ps.setDouble(1, curr.getSecond());
                                             ps.setObject(2, curr.getFirst());
                                         }
-
                                         @Override
                                         public int getBatchSize() {
                                             return it.size();
@@ -124,7 +117,8 @@ public class OdpuDataRepository implements CoordinatedRepository {
                                     }
                             );
                         }
-                ).subscribe();
+                ).then()
+                .subscribeOn(Schedulers.boundedElastic());
     }
 
     @Override

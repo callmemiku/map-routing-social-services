@@ -1,5 +1,7 @@
 package ru.moscow.hackathon.coordinator.repository;
 
+import org.springframework.data.util.Pair;
+import reactor.core.publisher.Mono;
 import ru.moscow.hackathon.coordinator.enums.OperationType;
 
 import java.sql.PreparedStatement;
@@ -7,11 +9,17 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface CoordinatedRepository {
 
-    void handle(OperationType type, List<String[]> rows);
+    Mono<List<Pair<UUID, List<String>>>> handle(OperationType type, List<String[]> rows);
+
     OperationType myType();
+
+    default Mono<Void> doAfter(List<Pair<UUID, List<String>>> rows) {
+        return Mono.empty();
+    }
 
     default void setDouble(
             PreparedStatement ps,
@@ -64,5 +72,4 @@ public interface CoordinatedRepository {
         }
     }
 
-    default void doAfter(List<String[]> rows) {}
 }

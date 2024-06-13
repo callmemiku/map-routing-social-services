@@ -16,6 +16,8 @@ import ru.moscow.hackathon.coordinator.mapping.WeatherMapper;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -45,7 +47,6 @@ public class WeatherGathererService {
     }
 
     public List<Pair<UUID, Double>> onDate(List<Pair<UUID, String>> date) {
-
         var inputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         var dates = date.stream()
                 .map(Pair::getSecond)

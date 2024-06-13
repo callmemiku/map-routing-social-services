@@ -1,7 +1,6 @@
 package ru.moscow.hackathon.coordinator.configuration;
 
 import io.netty.channel.ChannelOption;
-import io.netty.handler.logging.LogLevel;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +16,6 @@ import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
-import reactor.netty.transport.logging.AdvancedByteBufFormat;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
@@ -37,9 +35,6 @@ public class WebClientConfiguration {
                 .option(
                         ChannelOption.CONNECT_TIMEOUT_MILLIS,
                         timeout
-                ).wiretap("reactor.netty.http.client.HttpClient",
-                        LogLevel.DEBUG,
-                        AdvancedByteBufFormat.TEXTUAL
                 ).responseTimeout(
                         Duration.ofMillis(timeout)
                 ).doOnConnected(conn ->
@@ -52,8 +47,20 @@ public class WebClientConfiguration {
 
         return WebClient.builder()
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .filter(log())
                 .clientConnector(
                         new ReactorClientHttpConnector(httpClient)
                 ).build();
+    }
+
+    private static ExchangeFilterFunction log() {
+        return (ClientRequest request, ExchangeFunction next) -> {
+            log.info("WEB CLIENT | Performing {} {} request", request.method(), request.url());
+            return next.exchange(request)
+                    .doOnNext((ClientResponse response) -> {
+                        log.info("WEB CLIENT | {} {} Respond with {} status code", request.method(), request.url(),
+                                response.statusCode().value());
+                    });
+        };
     }
 }

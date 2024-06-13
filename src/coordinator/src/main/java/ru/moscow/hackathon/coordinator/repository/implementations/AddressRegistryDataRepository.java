@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
+import org.springframework.data.util.Pair; import java.util.Collections;
 import ru.moscow.hackathon.coordinator.enums.OperationType;
 import ru.moscow.hackathon.coordinator.repository.CoordinatedRepository;
 
@@ -25,9 +26,9 @@ public class AddressRegistryDataRepository implements CoordinatedRepository {
     JdbcTemplate jdbcTemplate;
 
     @Override
-    public void handle(OperationType type, List<String[]> rows) {
+    public Mono<List<Pair<UUID, List<String>>>> handle(OperationType type, List<String[]> rows) {
         log.debug("[ADDRESS REGISTRY REPO] saving {} records", rows.size());
-        Mono.just(rows)
+        return Mono.just(rows)
                 .map(it ->
                         jdbcTemplate.batchUpdate(
                                 """
@@ -54,7 +55,7 @@ public class AddressRegistryDataRepository implements CoordinatedRepository {
                                     }
                                 }
                         )
-                ).subscribe();
+                ).map(it -> Collections.emptyList());
     }
 
     @Override
