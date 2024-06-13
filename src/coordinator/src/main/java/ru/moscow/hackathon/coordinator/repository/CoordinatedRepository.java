@@ -63,4 +63,6 @@ public interface CoordinatedRepository {
             ps.setLong(position, number);
         }
     }
+
+    default void doAfter(List<String[]> rows) {}
 }

@@ -4,17 +4,15 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.relational.core.sql.In;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import ru.moscow.hackathon.coordinator.dto.ConfirmedEventDTO;
+import ru.moscow.hackathon.coordinator.dto.EventDTO;
 import ru.moscow.hackathon.coordinator.entity.BuildingEntity;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -27,14 +25,7 @@ public class EventRelationRepository {
 
     JdbcTemplate jdbcTemplate;
 
-    public void save(
-            Map<ConfirmedEventDTO, List<BuildingEntity>> events
-    ) {
-        saveEvents(new ArrayList<>(events.keySet()));
-        saveRelations(events);
-    }
-
-    private void saveRelations(Map<ConfirmedEventDTO, List<BuildingEntity>> events) {
+    private void saveRelations(Map<EventDTO, List<BuildingEntity>> events) {
         events.forEach(
                 (key, value) -> jdbcTemplate.batchUpdate(
                         "insert into event_to_unom_relation(event_id, unom, order_relation) values (?, ?, ?)",
@@ -55,8 +46,8 @@ public class EventRelationRepository {
         );
     }
 
-    private void saveEvents(
-            List<ConfirmedEventDTO> events
+    public void saveEvents(
+            List<EventDTO> events
     ) {
         jdbcTemplate.batchUpdate(
                 """
@@ -76,7 +67,7 @@ public class EventRelationRepository {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
                         var current = events.get(i);
-                        ps.setObject(1, current.getId()); // id
+                        ps.setObject(1, UUID.randomUUID()); // id
                         ps.setString(2, current.getName()); // description
                         ps.setString(3, current.getType().name()); // system
                         setStringNullSafe(ps, 4, current.getRegistrationDatetime()); // external_created

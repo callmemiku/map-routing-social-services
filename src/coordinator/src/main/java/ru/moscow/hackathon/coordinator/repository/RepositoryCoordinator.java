@@ -28,9 +28,9 @@ public class RepositoryCoordinator {
     }
 
     public void coordinate(OperationType type, List<String[]> rows) {
+        var repository = repositories.get(type);
         Mono.just(rows)
                 .doOnNext(it -> {
-                    var repository = repositories.get(type);
                     for (long i = 0; i < rows.size() / batchSize + 1; i++) {
                         repository.handle(
                                 type,
@@ -39,6 +39,7 @@ public class RepositoryCoordinator {
                                 .limit(batchSize)
                                 .toList());
                     }
-                }).subscribe();
+                }).doOnNext(repository::doAfter)
+                .subscribe();
     }
 }

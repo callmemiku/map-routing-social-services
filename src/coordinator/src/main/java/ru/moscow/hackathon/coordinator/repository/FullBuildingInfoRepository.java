@@ -8,8 +8,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.moscow.hackathon.coordinator.entity.BuildingEntity;
 
-import java.util.List;
-
 @Repository
 @Slf4j
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -17,41 +15,33 @@ import java.util.List;
 public class FullBuildingInfoRepository {
 
     JdbcTemplate jdbcTemplate;
-    /*info needed: {
-        priority
-        working_hours
-        efficiency_class
-        cooling speed?
-    }
-     */
 
-    public List<BuildingEntity> info(
-            List<String> unoms
+    public BuildingEntity info(
+            String unom
     ) {
-        var sql = String.format(
+        return jdbcTemplate.queryForObject(
                 """
                 select
                 ad.building_group as type,
                 ad.ods_identification as ods,
                 ped.energy_class as ec,
                 ad.unom as unom,
-                ard.geodata_center as geo
+                ard.geodata_center as geo,
+                ad.address as address
                 from asupr_data ad
                 left join power_efficiency_data ped on ad.address = ped.building
                 left join address_registry_data ard on ad.unom = ard.unom
-                where ad.unom in ('%s');
+                where ad.unom = ?;
                 """,
-                String.join("','", unoms)
-        );
-        return jdbcTemplate.query(
-                sql,
                 (rs, rn) -> BuildingEntity.builder()
                         .centerCoordinates(rs.getString("geo"))
                         .odsIdentity(rs.getString("ods"))
                         .efficiency(rs.getString("ec"))
                         .type(rs.getString("type"))
                         .unom(rs.getString("unom"))
-                        .build()
+                        .address(rs.getString("address"))
+                        .build(),
+                unom
         );
     }
 }

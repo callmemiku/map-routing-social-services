@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
-import ru.moscow.hackathon.coordinator.dto.ConfirmedEventDTO;
+import ru.moscow.hackathon.coordinator.dto.EventDTO;
 import ru.moscow.hackathon.coordinator.dto.StatusDTO;
 import ru.moscow.hackathon.coordinator.service.ConfirmedEventsProcessor;
 
@@ -26,7 +26,7 @@ public class ConfirmedEventsController {
 
     @PostMapping("/post")
     public Mono<StatusDTO> postEvents(
-            @RequestBody List<ConfirmedEventDTO> events
+            @RequestBody List<EventDTO> events
     ) {
         return processor.process(events);
     }

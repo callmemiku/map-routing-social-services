@@ -31,15 +31,15 @@ public class PythonScriptCaller {
         Process process;
         if (sheetDTO == null)
             process = new ProcessBuilder(
-                "python3",
-                file.getAbsolutePath(),
-                "-i",
-                input,
-                "-o",
-                output
-        ).redirectErrorStream(true)
-                .start();
-        else {
+                    "python3",
+                    file.getAbsolutePath(),
+                    "-i",
+                    input,
+                    "-o",
+                    output
+            ).redirectErrorStream(true)
+                    .start();
+        else
             process = new ProcessBuilder(
                     "python3",
                     file.getAbsolutePath(),
@@ -51,7 +51,6 @@ public class PythonScriptCaller {
                     sheetDTO.getSheetName()
             ).redirectErrorStream(true)
                     .start();
-        }
         int rc = process.waitFor();
         if (rc != 0) {
             throw new IllegalStateException("RC from python code is not 0");

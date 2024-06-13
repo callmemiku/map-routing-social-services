@@ -155,6 +155,9 @@ databaseChangeLog:
                   name: heat_counter_error
                   remarks: (22)
                   type: varchar
+              - column:
+                  name: temperature
+                  type: numeric
   - changeSet: #ok #java ok
       id: "3"
       author: "me"

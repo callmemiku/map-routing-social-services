@@ -7,21 +7,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-import ru.moscow.hackathon.coordinator.dto.ConfirmedEventDTO;
+import ru.moscow.hackathon.coordinator.dto.EventDTO;
 import ru.moscow.hackathon.coordinator.dto.StatusDTO;
 import ru.moscow.hackathon.coordinator.entity.BuildingEntity;
 import ru.moscow.hackathon.coordinator.entity.BuildingWithPriorityEntity;
 import ru.moscow.hackathon.coordinator.enums.BuildingType;
 import ru.moscow.hackathon.coordinator.enums.EfficiencyType;
 import ru.moscow.hackathon.coordinator.enums.WorkingHoursType;
+import ru.moscow.hackathon.coordinator.repository.EventJpaRepository;
 import ru.moscow.hackathon.coordinator.repository.EventRelationRepository;
-import ru.moscow.hackathon.coordinator.repository.FullBuildingInfoRepository;
 
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 @Service
 @Slf4j
@@ -29,60 +25,15 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ConfirmedEventsProcessor {
 
-    FullBuildingInfoRepository repository;
     EventRelationRepository eventRelationRepository;
 
-    public Mono<StatusDTO> process(List<ConfirmedEventDTO> events) {
+    Double WEIGHT = 0.33d;
 
-        Map<ConfirmedEventDTO, List<BuildingEntity>> grouped = new HashMap<>();
+    public Mono<StatusDTO> process(List<EventDTO> events) {
 
-        return Mono.just(grouped)
+        return Mono.just(events)
                 .doOnNext(
-                        it ->
-                                events.stream()
-                                        .peek(a -> a.setId(UUID.randomUUID()))
-                                        .forEach(
-                                                event -> it.put(
-                                                        event,
-                                                        repository.info(event.getUnoms())
-                                                )
-                                        )
-                ).doOnNext(
-                        map -> map.entrySet().forEach(
-                                entry -> {
-                                    var mapped = entry.getValue()
-                                            .stream()
-                                            .map(it -> {
-                                                        var entity = new BuildingWithPriorityEntity();
-                                                        entity.setEntity(it);
-                                                        entity.setPriorityByEfficiency(
-                                                                EfficiencyType.priority(
-                                                                        it.getEfficiency()
-                                                                )
-                                                        );
-                                                        entity.setPriorityByConsumerGroup(
-                                                                BuildingType.priority(
-                                                                        it.getType()
-                                                                )
-                                                        );
-                                                        entity.setPriorityByWorkingHours(
-                                                                WorkingHoursType.priority(
-                                                                        "КРУГЛОСУТОЧНО" //выяснить, где!
-                                                                )
-                                                        );
-                                                        entity.setCoolingSpeed(
-                                                                countCoolingSpeed(it)
-                                                        );
-                                                        return entity;
-                                                    }
-                                            ).toList();
-                                    entry.setValue(
-                                            order(mapped)
-                                    );
-                                }
-                        )
-                ).doOnNext(
-                        eventRelationRepository::save
+                        eventRelationRepository::saveEvents
                 ).flatMap(
                         it -> Mono.just(
                                 new StatusDTO(
@@ -102,6 +53,25 @@ public class ConfirmedEventsProcessor {
                 );
     }
 
+    public BuildingWithPriorityEntity appraise(BuildingEntity it) {
+        var entity = new BuildingWithPriorityEntity();
+        var efc = EfficiencyType.priority(
+                it.getEfficiency()
+        );
+        var groupc = BuildingType.priority(
+                it.getType()
+        );
+        var whc = WorkingHoursType.priority(
+                "КРУГЛОСУТОЧНО" //выяснить, где!
+        );
+        entity.setCoolingSpeed(
+                countCoolingSpeed(it)
+        );
+        var wep = WEIGHT / efc + WEIGHT / groupc + WEIGHT / whc;
+        entity.setWeightedEfficiency(wep);
+        return entity;
+    }
+
     private Double countCoolingSpeed(BuildingEntity entity) {
 
         //β=c·ρ·V/(α·F)
@@ -109,19 +79,5 @@ public class ConfirmedEventsProcessor {
         //z=(LN (ABS (tн-t1)) -LN (ABS (tн-t2)))·c·ρ·V/(α·F)
 
         return 0.0d;
-    }
-
-    private List<BuildingEntity> order(List<BuildingWithPriorityEntity> buildingEntities) {
-        return buildingEntities.stream()
-                .sorted(
-                        Comparator.comparing(
-                                BuildingWithPriorityEntity::getSumOfPriorities
-                        ).thenComparing
-                                (
-                                        BuildingWithPriorityEntity::getCoolingSpeed,
-                                        Comparator.reverseOrder()
-                                )
-                ).map(BuildingWithPriorityEntity::getEntity)
-                .toList();
     }
 }

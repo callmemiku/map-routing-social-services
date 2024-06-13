@@ -5,13 +5,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import ru.moscow.hackathon.coordinator.dto.ConfirmedEventDTO;
+import ru.moscow.hackathon.coordinator.dto.EventDTO;
 import ru.moscow.hackathon.coordinator.enums.SourceType;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,7 +20,7 @@ public class EventRepository {
 
     JdbcTemplate template;
 
-    public List<ConfirmedEventDTO> findEvents() {
+    public List<EventDTO> findEvents() {
         return template.query(
                 """
                     select 
@@ -39,7 +36,7 @@ public class EventRepository {
                     from events
                 """,
                 (rs, rowNum) -> {
-                    var result = new ConfirmedEventDTO();
+                    var result = new EventDTO();
                     result.setId(
                             rs.getObject("id", UUID.class)
                     );
