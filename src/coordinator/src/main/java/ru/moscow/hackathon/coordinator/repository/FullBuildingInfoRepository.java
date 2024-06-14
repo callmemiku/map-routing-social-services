@@ -31,7 +31,7 @@ public class FullBuildingInfoRepository {
                 from asupr_data ad
                 left join power_efficiency_data ped on ad.address = ped.building
                 left join address_registry_data ard on ad.unom = ard.unom
-                where ad.unom = ?;
+                where ad.unom = ? limit 1;
                 """,
                 (rs, rn) -> BuildingEntity.builder()
                         .centerCoordinates(rs.getString("geo"))

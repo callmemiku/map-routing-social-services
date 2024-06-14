@@ -5,12 +5,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Locale;
 
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public enum WorkingHoursType {
+
     THREE(3, "9:00-18:00"),
     TWO(2, "9:00-21:00"),
     ONE(1, "КРУГЛОСУТОЧНО");

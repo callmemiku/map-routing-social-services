@@ -54,7 +54,7 @@ public class ConfirmedEventsProcessor {
     }
 
     public BuildingWithPriorityEntity appraise(BuildingEntity it) {
-        var entity = new BuildingWithPriorityEntity();
+        var entity = new BuildingWithPriorityEntity(it);
         var efc = EfficiencyType.priority(
                 it.getEfficiency()
         );

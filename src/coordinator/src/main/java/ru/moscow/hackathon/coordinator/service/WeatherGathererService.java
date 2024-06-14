@@ -1,5 +1,6 @@
 package ru.moscow.hackathon.coordinator.service;
 
+import jakarta.annotation.PostConstruct;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -17,10 +18,12 @@ import ru.moscow.hackathon.coordinator.mapping.WeatherMapper;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -30,6 +33,13 @@ public class WeatherGathererService {
 
     WebClient client;
     WeatherMapper mapper;
+    Map<String, Double> weathers = new ConcurrentHashMap<>();
+    WeatherService service;
+
+    @PostConstruct
+    public void init() {
+        weathers.putAll(service.weathers());
+    }
 
     public Mono<WeatherDTO> getCurrentWeather() {
         return client.get()
@@ -48,56 +58,76 @@ public class WeatherGathererService {
 
     public List<Pair<UUID, Double>> onDate(List<Pair<UUID, String>> date) {
         var inputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        var outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
         var dates = date.stream()
-                .map(Pair::getSecond)
-                .map(a -> LocalDate.parse(a, inputFormatter))
-                .sorted()
+                .map(a -> Pair.of(
+                        a.getFirst(),
+                        LocalDate.parse(a.getSecond(), inputFormatter))
+                ).filter(it -> !weathers.containsKey(it.getSecond().format(outputFormatter)))
                 .toList();
 
-        var outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        var first = dates.get(0).format(outputFormatter);
-        var last = dates.get(date.size() - 1).format(outputFormatter);
-        var a = client.get()
-                .uri(
-                        String.format(
-                                "https://archive-api.open-meteo.com/v1/era5?latitude=%f&longitude=%f&start_date=%s&end_date=%s&hourly=temperature_2m",
-                                55.44,
-                                37.36,
-                                first,
-                                last
-                        )
-                ).accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .bodyToMono(ArchiveWeatherDTO.class)
-                .block();
-
-        if (a == null) {
-            throw new IllegalStateException("HOURLY NULL?");
-        }
-
-        var hours = a.getHourly();
-        var time = hours.getTime();
-        var temp = hours.getTemperature_2m();
-        return date.stream()
+        var result = date.stream()
                 .map(pair -> {
-                    var formatted = LocalDate.parse(pair.getSecond(), inputFormatter).format(outputFormatter);
-                    var counter = -1;
-                    for (int i = 0; i < time.size(); i++) {
-                        var act = time.get(i);
-                        if (act.contains(formatted) && counter == -1) {
-                            counter = i;
+                            var formatted = LocalDate.parse(pair.getSecond(), inputFormatter).format(outputFormatter);
+                            if (weathers.containsKey(formatted)) {
+                                return Pair.of(pair.getFirst(), weathers.get(formatted));
+                            } else return null;
                         }
-                        if (act.equals(String.format("%sT12:00", formatted))) {
+                ).filter(Objects::nonNull);
+
+        if (dates.isEmpty()) {
+            return result.toList();
+        } else {
+            var sorted = dates.stream().map(Pair::getSecond).sorted().toList();
+            var first = sorted.get(0).format(outputFormatter);
+            var last = sorted.get(date.size() - 1).format(outputFormatter);
+            var a = client.get()
+                    .uri(
+                            String.format(
+                                    "https://archive-api.open-meteo.com/v1/era5?latitude=%f&longitude=%f&start_date=%s&end_date=%s&hourly=temperature_2m",
+                                    55.44,
+                                    37.36,
+                                    first,
+                                    last
+                            )
+                    ).accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .bodyToMono(ArchiveWeatherDTO.class)
+                    .block();
+
+            if (a == null) {
+                throw new IllegalStateException("HOURLY NULL?");
+            }
+            var hours = a.getHourly();
+            var time = hours.getTime();
+            var temp = hours.getTemperature_2m();
+            var rest = dates.stream()
+                    .map(pair -> {
+                        var formatted = pair.getSecond().format(outputFormatter);
+                        if (weathers.containsKey(formatted)) {
+                            return Pair.of(pair.getFirst(), weathers.get(formatted));
+                        } else {
+                            var cursors = new ArrayList<Integer>();
+                            for (int i = 0; i < time.size(); i++) {
+                                var act = time.get(i);
+                                if (act.contains(formatted)) {
+                                    cursors.add(i);
+                                }
+                            }
+                            var sum = cursors.stream()
+                                    .map(temp::get)
+                                    .mapToDouble(it -> it)
+                                    .sum() / cursors.size();
+                            weathers.put(formatted, sum);
                             return Pair.of(
                                     pair.getFirst(),
-                                    temp.get(i)
+                                    sum
                             );
                         }
-                    }
-                    return Pair.of(
-                            pair.getFirst(),
-                            counter == -1 ? -1.0 : temp.get(counter)
-                    );
-                }).toList();
+                    });
+            service.process(weathers);
+            return Stream.concat(result, rest).toList();
+        }
     }
 }

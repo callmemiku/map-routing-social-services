@@ -533,21 +533,25 @@ databaseChangeLog:
                   type: varchar
                   remarks: Здание (0)
               - column:
-                  name: energy_class
-                  type: varchar
-                  remarks: Класс энергоэффективности (6)
-              - column:
                   name: full_square
                   type: numeric
                   remarks: Общая площадь (2)
               - column:
+                  name: full_square_heated
+                  type: numeric
+                  remarks: Общая отапливаемая площадь (3)
+              - column:
                   name: employees_number
                   type: int
-                  remarks: Среднее количество работников (3)
+                  remarks: Среднее количество работников (4)
               - column:
                   name: building_type
                   type: varchar
-                  remarks: Тип учреждения / Тип строения (4)
+                  remarks: Тип учреждения / Тип строения (5)
+              - column:
+                  name: energy_class
+                  type: varchar
+                  remarks: Класс энергоэффективности (6)
               - column:
                   name: building_wear
                   type: numeric
@@ -788,5 +792,38 @@ databaseChangeLog:
               - column:
                   name: order_relation
                   type: int
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 22
+      author: me
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: weathers
+      changes:
+        - createTable:
+            tableName: weathers
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: date_yyyy
+                  type: varchar
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: date_dd
+                  type: varchar
+                  constraints:
+                    nullable: false
+              - column:
+                  name: temperature
+                  type: numeric
                   constraints:
                     nullable: false

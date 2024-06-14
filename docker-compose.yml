@@ -43,5 +43,14 @@ services:
       - db-data:/var/lib/postgresql/data
     restart: unless-stopped
 
+  fe:
+    build: "src/map-router"
+    depends_on:
+      - coordinator
+    ports:
+      - 5173:5173
+    environment:
+      - BE_URL=coordinator/
+
 volumes:
   db-data:

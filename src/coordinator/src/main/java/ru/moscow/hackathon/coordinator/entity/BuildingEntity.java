@@ -11,7 +11,7 @@ import lombok.experimental.FieldDefaults;
 
 import java.util.UUID;
 
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@FieldDefaults(level = AccessLevel.PROTECTED)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
