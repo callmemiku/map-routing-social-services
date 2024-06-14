@@ -9,4 +9,5 @@ RUN \
     ; \
     pip install                       \
         numpy pandas matplotlib torch \
-        openpyxl
+        openpyxl sqlalchemy scipy     \
+        scikit-learn
