@@ -12,4 +12,5 @@ import ru.moscow.hackathon.coordinator.entity.BuildingEntity;
 public class FENotificationDTO {
     EventDTO event;
     BuildingEntity building;
+    String info;
 }

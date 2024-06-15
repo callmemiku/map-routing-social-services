@@ -1,5 +1,6 @@
 package ru.moscow.hackathon.coordinator.repository.implementations.dictionaries;
 
+import jakarta.annotation.PostConstruct;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -14,16 +15,30 @@ import ru.moscow.hackathon.coordinator.repository.CoordinatedRepository;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Repository
 @Slf4j
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
-public class WallsMaterialsDictionaryDataRepository implements CoordinatedRepository {
+public class WallsMaterialsDictionaryDataRepository extends CoordinatedRepository {
 
     JdbcTemplate jdbcTemplate;
+    Map<Integer, String> FIELDS = new HashMap<>();
+
+    @PostConstruct
+    public void init() {
+                FIELDS.put(2,"typical_series");
+                FIELDS.put(3,"exterior_wall_material");
+                FIELDS.put(4,"thickness");
+                FIELDS.put(5,"outer_layer");
+                FIELDS.put(6,"insulation_layer");
+                FIELDS.put(7,"inner_layer");
+                FIELDS.put(8,"calc_heat_transfer_resistance");
+    }
 
     @Override
     public Mono<List<Pair<UUID, List<String>>>> handle(OperationType type, List<String[]> rows) {
@@ -50,14 +65,15 @@ public class WallsMaterialsDictionaryDataRepository implements CoordinatedReposi
                                             int i
                                     ) throws SQLException {
                                         String[] current = rows.get(i);
-                                        ps.setObject(1, UUID.randomUUID());
-                                        ps.setString(2, current[0]);
-                                        ps.setString(3, current[1]);
-                                        setDouble(ps, 4, current[2]);
-                                        setDouble(ps, 5, current[3]);
-                                        setDouble(ps, 6, current[4]);
-                                        setDouble(ps, 7, current[5]);
-                                        setDouble(ps, 8, current[6]);
+                                        var id = UUID.randomUUID();
+                                        ps.setObject(1, id);
+                                        setString(id, ps, 2, current[0]);
+                                        setString(id, ps, 3, current[1]);
+                                        setDouble(id, ps, 4, current[2]);
+                                        setDouble(id, ps, 5, current[3]);
+                                        setDouble(id, ps, 6, current[4]);
+                                        setDouble(id, ps, 7, current[5]);
+                                        setDouble(id, ps, 8, current[6]);
                                     }
 
                                     @Override
@@ -67,6 +83,11 @@ public class WallsMaterialsDictionaryDataRepository implements CoordinatedReposi
                                 }
                         )
                 ).map(it -> Collections.emptyList());
+    }
+
+    @Override
+    protected Map<Integer, String> errors() {
+        return FIELDS;
     }
 
     @Override

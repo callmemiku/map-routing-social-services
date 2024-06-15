@@ -19,8 +19,9 @@ public class FullBuildingInfoRepository {
     public BuildingEntity info(
             String unom
     ) {
-        return jdbcTemplate.queryForObject(
-                """
+        try {
+            return jdbcTemplate.queryForObject(
+                    """
                 select
                 ad.building_group as type,
                 ad.ods_identification as ods,
@@ -43,5 +44,9 @@ public class FullBuildingInfoRepository {
                         .build(),
                 unom
         );
+        } catch (Exception e) {
+            log.error("Не удалось найти информацию о здании: {}", e.getMessage());
+            return new BuildingEntity();
+        }
     }
 }

@@ -53,7 +53,7 @@ public class InputProcessor {
 
         xlsx.getSheets()
                 .forEach(
-                        it -> processFile(file, it.getType(), 2, it).subscribe(list::add)
+                        it -> processFile(file, it.getType(), it.getHeaderSize(), it).subscribe(list::add)
                 );
 
         return Mono.just(
@@ -130,7 +130,7 @@ public class InputProcessor {
                                 }
 
                                 return reader.lines()
-                                        .skip(ignoreLines == null ? 0 : ignoreLines)
+                                        .skip(ignoreLines == null ? 0 : ignoreLines - 1)
                                         .map(
                                                 row -> {
                                                     var strings = row.split(";");

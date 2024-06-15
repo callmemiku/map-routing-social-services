@@ -14,7 +14,6 @@ import ru.moscow.hackathon.coordinator.entity.BuildingWithPriorityEntity;
 import ru.moscow.hackathon.coordinator.enums.BuildingType;
 import ru.moscow.hackathon.coordinator.enums.EfficiencyType;
 import ru.moscow.hackathon.coordinator.enums.WorkingHoursType;
-import ru.moscow.hackathon.coordinator.repository.EventJpaRepository;
 import ru.moscow.hackathon.coordinator.repository.EventRelationRepository;
 
 import java.util.List;

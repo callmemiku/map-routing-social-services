@@ -13,7 +13,7 @@ import java.util.Locale;
 public enum BuildingType {
 
     SOCIAL(List.of("СОЦИАЛЬНЫЙ", "БЮДЖЕТ"), 1),
-    INDUSTRIAL(List.of("ПРОМЫШЛЕННЫЙ"), 2),
+    INDUSTRIAL(List.of("ПРОМЫШЛЕННЫЙ", "ПРОЧЕЕ"), 2),
     HOUSE(List.of("МКД"), 3);
 
     List<String> type;
@@ -28,9 +28,7 @@ public enum BuildingType {
                     .filter(it -> it.type.contains(type.toUpperCase(Locale.ROOT)))
                     .map(it -> it.priority)
                     .findFirst()
-                    .orElseThrow(
-                            () -> new IllegalArgumentException("Неизвестный тип потребителя: " + type)
-                    );
+                    .orElse(2);
         }
     }
 }

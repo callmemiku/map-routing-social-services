@@ -1,14 +1,14 @@
-package ru.moscow.hackathon.coordinator.repository;
+package ru.moscow.hackathon.coordinator.repository.jpa;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import ru.moscow.hackathon.coordinator.dto.EventDTO;
+import ru.moscow.hackathon.coordinator.entity.BtiEntity;
 
 import java.util.UUID;
 
 @Repository
-public interface EventJpaRepository extends JpaRepository<EventDTO, UUID> {
-    Page<EventDTO> findAllBy(Pageable pageable);
+public interface BtiJpaRepository extends JpaRepository<BtiEntity, UUID> {
+    Page<BtiEntity> findAllBy(Pageable pageable);
 }

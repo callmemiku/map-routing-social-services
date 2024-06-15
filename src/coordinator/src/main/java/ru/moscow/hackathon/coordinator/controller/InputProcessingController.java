@@ -1,23 +1,19 @@
 package ru.moscow.hackathon.coordinator.controller;
 
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Encoding;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.moscow.hackathon.coordinator.dto.MultisheetXLSXDTO;
 import ru.moscow.hackathon.coordinator.dto.StatusDTO;
@@ -63,8 +59,9 @@ public class InputProcessingController {
             path = "/xlsx-multiple-sheets",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
+    @Validated
     public Mono<StatusDTO> wideXlsx(
-            @RequestPart(value = "sheet-info") MultisheetXLSXDTO dto,
+            @Valid @RequestPart(value = "sheet-info") MultisheetXLSXDTO dto,
             @RequestPart(value = "file", required = true) MultipartFile file
     ) {
         return processor.processFile(

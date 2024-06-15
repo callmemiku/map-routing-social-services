@@ -6,6 +6,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,10 +31,13 @@ public class FrontendAwareController {
             @RequestParam("page") Integer pageNumber,
             @RequestParam("size") Integer size
     ) {
-        //todo: сортировку на фронт прикрутить
         var page = PageRequest.of(
                 pageNumber,
-                size
+                size,
+                Sort.by(
+                        Sort.Direction.DESC,
+                        "registrationDatetime"
+                )
         );
         return service.response(page);
     }

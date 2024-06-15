@@ -1,5 +1,9 @@
 package ru.moscow.hackathon.coordinator.dto;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,6 +19,8 @@ import java.util.List;
 public class MultisheetXLSXDTO {
 
     @Getter
+    @NotEmpty
+    @Valid
     List<SheetDTO> sheets;
 
     @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -22,7 +28,8 @@ public class MultisheetXLSXDTO {
     @AllArgsConstructor
     @Getter
     public static class SheetDTO {
-        OperationType type;
-        String sheetName;
+        @NotNull OperationType type;
+        @NotBlank String sheetName;
+        @NotNull Integer headerSize;
     }
 }

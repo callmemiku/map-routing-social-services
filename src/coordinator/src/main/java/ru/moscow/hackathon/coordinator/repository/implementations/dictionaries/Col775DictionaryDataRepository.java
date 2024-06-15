@@ -1,5 +1,6 @@
 package ru.moscow.hackathon.coordinator.repository.implementations.dictionaries;
 
+import jakarta.annotation.PostConstruct;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -14,16 +15,31 @@ import ru.moscow.hackathon.coordinator.repository.CoordinatedRepository;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Repository
 @Slf4j
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
-public class Col775DictionaryDataRepository implements CoordinatedRepository {
+public class Col775DictionaryDataRepository extends CoordinatedRepository {
 
     JdbcTemplate jdbcTemplate;
+
+    Map<Integer, String> FIELDS = new HashMap<>();
+
+    @PostConstruct
+    public void init() {
+        FIELDS.put(2, "code");
+        FIELDS.put(3, "description");
+    }
+
+    @Override
+    protected Map<Integer, String> errors() {
+        return FIELDS;
+    }
 
     @Override
     public Mono<List<Pair<UUID, List<String>>>> handle(OperationType type, List<String[]> rows) {
@@ -45,9 +61,10 @@ public class Col775DictionaryDataRepository implements CoordinatedRepository {
                                             int i
                                     ) throws SQLException {
                                         String[] current = rows.get(i);
-                                        ps.setObject(1, UUID.randomUUID());
-                                        ps.setString(2, current[0]);
-                                        ps.setString(3, current[1]);
+                                        var id = UUID.randomUUID();
+                                        ps.setObject(1, id);
+                                        setString(id, ps, 2, current[0]);
+                                        setString(id, ps, 3, current[1]);
                                     }
 
                                     @Override

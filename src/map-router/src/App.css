@@ -44,6 +44,7 @@
 .table-container {
   position: sticky;
   top: 5vh;
+  min-width: 40vw;
   max-width: 40vw;
   min-height: 95vh;
   max-height: 95vh;
@@ -65,12 +66,10 @@ th {
 
 td {
   font-size: small;
-  min-width: 5vw;
-  max-width: 10vw;
+  text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 1px;
-  text-align: center;
+  padding: 5px;
   border-bottom: 1px solid #6a6767;
   word-break: break-word;
 }
@@ -85,5 +84,5 @@ tbody tr:nth-child(even) {
 }
 
 tbody tr:hover {
-  background-color: #a894a8;
+  background-color: #958e95;
 }

@@ -1,8 +1,8 @@
 export type Event = {
     event: EventDTO;
     building: Building;
+    info: string;
 }
-
 export type EventDTO = {
     name: string;
     type: string;

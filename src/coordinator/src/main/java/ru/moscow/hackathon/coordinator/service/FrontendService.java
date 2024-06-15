@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import ru.moscow.hackathon.coordinator.dto.FENotificationDTO;
-import ru.moscow.hackathon.coordinator.repository.EventJpaRepository;
+import ru.moscow.hackathon.coordinator.repository.jpa.EventJpaRepository;
 import ru.moscow.hackathon.coordinator.repository.FullBuildingInfoRepository;
 
 @Service
@@ -37,7 +37,8 @@ public class FrontendService {
                                                         v.getUnom()
                                                 )
                                         )
-                                ).build()
+                                ).info("\tTEST\n\t\tTEST2")
+                                .build()
                 )
         );
     }
