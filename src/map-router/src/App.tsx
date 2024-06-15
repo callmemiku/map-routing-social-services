@@ -1,10 +1,13 @@
-import {Map as GeoMap, Marker} from "react-map-gl/maplibre";
+import {Layer as MapLayer, Map as GeoMap, Source} from "react-map-gl/maplibre";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import React, {Fragment, useEffect, useMemo, useState} from "react";
 import "./App.css";
 import {Coordinates, Event} from "./entity/Entity";
 import {ColumnDef, flexRender, getCoreRowModel, PaginationState, Row, useReactTable} from "@tanstack/react-table";
+import ControlPanel from "./ControlPanel";
+import type {FeatureCollection} from 'geojson';
+import {CircleLayer, RasterLayer} from "mapbox-gl";
 
 const MAPTILER_API_KEY = import.meta.env.VITE_MAPTILER_API_KEY;
 const URL = import.meta.env.BE_URL ?? "localhost:8080/";
@@ -17,7 +20,9 @@ const MAPS_DEFAULT_LOCATION = {
 
 export const App = () => {
 
-    const [markers, setMarkers] = useState([]);
+    const [markers_Red, setMarkersRed]: FeatureCollection = useState(null);
+    const [markers_Green, setMarkersGreen]: FeatureCollection = useState(null);
+    const [markers_Yellow, setMarkersYellow]: FeatureCollection = useState(null);
 
     const columns = useMemo<ColumnDef<Event>[]>(
         () => [
@@ -25,7 +30,7 @@ export const App = () => {
                 id: 'expander',
                 minSize: 10, maxSize: 10,
                 header: () => null,
-                cell: ({ row }) => {
+                cell: ({row}) => {
                     return row.getCanExpand() ? (
                         <button style={{
                             padding: "0px 0px",
@@ -35,10 +40,10 @@ export const App = () => {
                             boxShadow: '0',
                             width: '2px'
                         }}
-                            {...{
-                                onClick: row.getToggleExpandedHandler(),
-                                style: { cursor: 'pointer' },
-                            }}
+                                {...{
+                                    onClick: row.getToggleExpandedHandler(),
+                                    style: {cursor: 'pointer'},
+                                }}
                         >
                             {row.getIsExpanded() ? 'v' : '>'}
                         </button>
@@ -50,9 +55,9 @@ export const App = () => {
             },
             {header: "Тип", accessorKey: "event.name"},
             {header: "Источник", accessorKey: "event.type"},
-            {header: "Округ", accessorKey: "event.region"},
+            {header: "Дата начала", accessorKey: "event.registrationDatetime"},
+            {header: "Дата окончания", accessorKey: "event.eventEndedDatetime"},
             {header: "Группа", accessorKey: "building.type"},
-            {header: "Адрес", accessorKey: "event.address"},
             {header: "k", accessorKey: "building.weightedEfficiency"},
             {header: "w", accessorKey: "building.coolingSpeed"}
         ], []
@@ -67,37 +72,124 @@ export const App = () => {
     const [total, setTotal] = useState(0);
 
     function updateMarkers(events: Array<Event>) {
-        const b_markers = []
+        let markersMap = new Map<string, Event>();
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
             try {
-                let geo: Coordinates = JSON.parse(event.building
-                    .centerCoordinates.replace("coordinates=", '"coordinates": ')
-                    .replace("type=", '"type": ')
-                    .replace("Point", '"Point"')
-                );
-
-                const priority = event.building.weightedEfficiency;
-                let color;
-                if (priority > 0.85) {
-                    color = 'red'
-                } else if (priority < 0.35) {
-                    color = 'green'
-                } else if (priority > 0.34 && priority < 0.86) {
-                    color = 'yellow'
+                const unom = event.building.unom;
+                if (markersMap.has(unom)) {
+                    const h = markersMap.get(unom);
+                    if (h.building.weightedEfficiency < event.building.weightedEfficiency) {
+                        markersMap.set(unom, event);
+                    }
+                } else {
+                    markersMap.set(unom, event)
                 }
-                b_markers[i] = <Marker
-                    longitude={geo.coordinates[0]}
-                    latitude={geo.coordinates[1]}
-                    color={color}
-                />
             } catch (e) {
                 console.log(e)
             }
         }
-        console.log(b_markers)
-        setMarkers(b_markers);
+        const values = [...markersMap.values()];
+        const b_markers_yellow = []
+        const b_markers_green = []
+        const b_markers_red = []
+        for (let i = 0; i < values.length; i++) {
+            const event = values[i];
+            try {
+                let geo: Coordinates = JSON.parse(
+                    event.building
+                        .centerCoordinates
+                        .replace("coordinates=", '"coordinates": ')
+                        .replace("type=", '"type": ')
+                        .replace("Point", '"Point"')
+                );
+
+                const priority = event.building.weightedEfficiency;
+                if (priority > 0.85) {
+                    b_markers_red.push(
+                        {
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": [geo.coordinates[0], geo.coordinates[1]]
+                            }
+                        }
+                    )
+                } else if (priority < 0.35) {
+                    b_markers_green.push(
+                        {
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": [geo.coordinates[0], geo.coordinates[1]]
+                            }
+                        }
+                    )
+                } else if (priority > 0.34 && priority < 0.86) {
+                    b_markers_yellow.push(
+                        {
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": [geo.coordinates[0], geo.coordinates[1]]
+                            }
+                        }
+                    )
+                }
+            } catch (e) {
+                console.log(e)
+            }
+        }
+        console.log(b_markers_red)
+        const red: FeatureCollection = {
+            type: "FeatureCollection",
+            features: b_markers_red
+        };
+        setMarkersRed(
+            red
+        );
+        const green: FeatureCollection = {
+            type: "FeatureCollection",
+            features: b_markers_green
+        };
+        setMarkersGreen(
+            green
+        );
+        const yellow: FeatureCollection = {
+            type: "FeatureCollection",
+            features: b_markers_yellow
+        };
+        setMarkersYellow(
+            yellow
+        );
     }
+
+    const layerStyleRED: CircleLayer = {
+        id: 'point',
+        type: 'circle',
+        paint: {
+            'circle-radius': 10,
+            'circle-color': 'red'
+        }
+    };
+
+    const layerStyleYELLOW: CircleLayer = {
+        id: 'point',
+        type: 'circle',
+        paint: {
+            'circle-radius': 10,
+            'circle-color': 'yellow'
+        }
+    };
+
+    const layerStyleGREEN: CircleLayer = {
+        id: 'point',
+        type: 'circle',
+        paint: {
+            'circle-radius': 10,
+            'circle-color': 'green'
+        }
+    };
 
     const getPageData = (page: number, size: number) => {
         fetch(
@@ -146,14 +238,16 @@ export const App = () => {
 
     const [data, setData] = useState([]);
 
+    //region MAPS
     const widths_max = new Map();
     widths_max.set('Источник', '10vw')
-    widths_max.set("Тип", '10vw')
+    widths_max.set("Тип", '30vw')
     widths_max.set("Округ", '2vw')
     widths_max.set("Группа", '2vw')
-    widths_max.set("Адрес", '10vw')
     widths_max.set("k", '1vw')
     widths_max.set("w", '1vw')
+    widths_max.set("Дата начала", '10vw')
+    widths_max.set("Дата окончания", '10vw')
 
     const place = new Map();
     place.set(0, 'justify')
@@ -166,34 +260,55 @@ export const App = () => {
 
     const widths_min = new Map();
     widths_min.set('Источник', '5vw')
-    widths_min.set("Тип", '5vw')
+    widths_min.set("Тип", '10vw')
     widths_min.set("Округ", '4vw')
     widths_min.set("Группа", '4vw')
-    widths_min.set("Адрес", '10vw')
     widths_min.set("k", '3vw')
     widths_min.set("w", '3vw')
+    widths_min.set("Дата начала", '5vw')
+    widths_min.set("Дата окончания", '5vw')
+    //endregion
 
     const mapTilerMapStyle = useMemo(() => {
         return `https://api.maptiler.com/maps/basic-v2/style.json?key=${MAPTILER_API_KEY}`;
     }, []);
 
-    const renderSubComponent = ({ row }: { row: Row<Event> }) => {
+    const renderSubComponent = ({row}: { row: Row<Event> }) => {
         return (
-            <pre style={{ fontSize: 'medium', left: "30px", textAlign: "justify" }}>
+            <pre style={{fontSize: 'medium', left: "30px", textAlign: "justify"}}>
             <code>{row.original.info}</code>
     </pre>
         )
     }
 
+    function update() {
+        getPageData(0, 10)
+        setPagination(
+            {
+                pageIndex: 0,
+                pageSize: 10,
+            }
+        )
+    }
+
+    const [layersVisibility, setLayersVisibility] = React.useReducer(
+        (state, updates) => ({...state, ...updates}
+        ), {}
+    );
+
     return (
         <>
+            <button style={{bottom: "98vh", minWidth: "40vw", maxWidth: "40vw"}} onClick={update}>
+                Обновить данные
+            </button>
             <div className="p-2">
                 <table style={{
                     position: "sticky",
-                    top: "0vw",
+                    top: "1vw",
+                    minWidth: "40vw",
                     maxWidth: "40vw",
-                    minHeight: "90vh",
-                    maxHeight: "90vh",
+                    minHeight: "87vh",
+                    maxHeight: "87vh",
                     zIndex: "-1 !important",
                     overflowY: "auto"
                 }}>
@@ -255,9 +370,8 @@ export const App = () => {
                                 </tr>
                                 {row.getIsExpanded() && (
                                     <tr>
-                                        {/* 2nd row is a custom 1 cell row */}
                                         <td colSpan={row.getVisibleCells().length}>
-                                            {renderSubComponent({ row })}
+                                            {renderSubComponent({row})}
                                         </td>
                                     </tr>
                                 )}
@@ -267,7 +381,8 @@ export const App = () => {
                     </tbody>
                 </table>
 
-                <div style={{left: "2vw", zIndex: "2", position: "sticky"}} className="flex items-center gap-2">
+                <div style={{left: "2vw", zIndex: "2", position: "sticky", marginLeft: '5px'}}
+                     className="flex items-center gap-2">
                     <button
                         className="border rounded p-1"
                         onClick={() => table.setPageIndex(0)}
@@ -303,8 +418,8 @@ export const App = () => {
               {table.getPageCount()}
           </strong>
         </span>
-                    <span className="flex items-center gap-1">
-          | Перейти на страницу:
+                    <span className="flex items-center gap-1" style={{marginLeft: '5px', marginRight: '5px'}}>
+             | Перейти на страницу:
           <input
               type="number"
               defaultValue={table.getState().pagination.pageIndex + 1}
@@ -312,7 +427,7 @@ export const App = () => {
                   const page = e.target.value ? Number(e.target.value) - 1 : 0;
                   table.setPageIndex(page);
               }}
-              className="border p-1 rounded w-16"
+              style={{width: '30px', marginLeft: '5px'}}
           />
         </span>
                     <select
@@ -328,7 +443,7 @@ export const App = () => {
                         ))}
                     </select>
                 </div>
-                <div>{table.getRowModel().rows.length} строк</div>
+                <div style={{marginLeft: '5px'}}>{table.getRowModel().rows.length} строк</div>
             </div>
             <GeoMap
                 initialViewState={{
@@ -348,10 +463,21 @@ export const App = () => {
                 hash
                 mapLib={maplibregl}
                 mapStyle={mapTilerMapStyle}
-
             >
-                {markers}
+                <Source id='high' type="geojson" data={
+                    markers_Red
+                }>
+                    <MapLayer {...layerStyleRED} key={'high'} type={"circle"} layout={{visibility: layersVisibility["high"]}}/>
+                </Source>
+                <Source key="mid" type="geojson" data={markers_Yellow}>
+                    <MapLayer {...layerStyleYELLOW} key={'mid'}  layout={{ visibility: layersVisibility["mid"] }}/>
+                </Source>
+                <Source key="low" type="geojson" data={markers_Green}>
+                    <MapLayer {...layerStyleGREEN} key={'low'}  layout={{ visibility: layersVisibility["low"] }}/>
+                </Source>
             </GeoMap>
+
+            <ControlPanel onChange={setLayersVisibility}/>
         </>
     );
 }

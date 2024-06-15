@@ -46,8 +46,8 @@
   top: 5vh;
   min-width: 40vw;
   max-width: 40vw;
-  min-height: 95vh;
-  max-height: 95vh;
+  min-height: 90vh;
+  max-height: 90vh;
 }
 
 table {
@@ -85,4 +85,12 @@ tbody tr:nth-child(even) {
 
 tbody tr:hover {
   background-color: #958e95;
+}
+
+.control-panel {
+  position: fixed;
+  left: 40vw;
+  bottom: 84vh;
+  background-color:rgba(0, 0, 0, 0.5);
+  padding: 10px;
 }

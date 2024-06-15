@@ -16,16 +16,7 @@ public class BuildingWithPriorityEntity extends BuildingEntity {
     Double coolingSpeed;
 
     public BuildingWithPriorityEntity(BuildingEntity parent, Double weightedEfficiency, Double coolingSpeed) {
-        super(
-                parent.id,
-                parent.unom,
-                parent.centerCoordinates,
-                parent.type,
-                parent.workingHours,
-                parent.efficiency,
-                parent.odsIdentity,
-                parent.address
-        );
+        this(parent);
         this.weightedEfficiency = weightedEfficiency;
         this.coolingSpeed = coolingSpeed;
     }
@@ -39,7 +30,14 @@ public class BuildingWithPriorityEntity extends BuildingEntity {
                 parent.workingHours,
                 parent.efficiency,
                 parent.odsIdentity,
-                parent.address
+                parent.address,
+                parent.odsAddress,
+                parent.warmPointId,
+                parent.addressFull,
+                parent.consumer,
+                parent.tpAddress,
+                parent.tpType,
+                parent.tpHeatSource
         );
     }
 }

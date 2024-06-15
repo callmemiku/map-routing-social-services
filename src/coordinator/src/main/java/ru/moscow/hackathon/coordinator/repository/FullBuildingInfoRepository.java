@@ -28,10 +28,18 @@ public class FullBuildingInfoRepository {
                 ped.energy_class as ec,
                 ad.unom as unom,
                 ard.geodata_center as geo,
-                ad.address as address
+                ad.address as address,
+                ad.ods_address as ods_adr,
+                ad.consumer as consumer,
+                ad.address_full as adr_full,
+                ad.warm_point_id as wp_id,
+                mcd.address as tp_addr,
+                mcd.heat_source as tp_hs,
+                mcd.heating_station_type as tp_st  
                 from asupr_data ad
                 left join power_efficiency_data ped on ad.address = ped.building
                 left join address_registry_data ard on ad.unom = ard.unom
+                left join moek_connection_data mcd on ad.warm_point_id = mcd.heating_station_number
                 where ad.unom = ? limit 1;
                 """,
                 (rs, rn) -> BuildingEntity.builder()
@@ -41,12 +49,19 @@ public class FullBuildingInfoRepository {
                         .type(rs.getString("type"))
                         .unom(rs.getString("unom"))
                         .address(rs.getString("address"))
+                        .odsAddress(rs.getString("ods_adr"))
+                        .warmPointId(rs.getString("wp_id"))
+                        .addressFull(rs.getString("adr_full"))
+                        .consumer(rs.getString("consumer"))
+                        .tpAddress(rs.getString("tp_addr"))
+                        .tpHeatSource(rs.getString("tp_hs"))
+                        .tpType(rs.getString("tp_st"))
                         .build(),
                 unom
         );
         } catch (Exception e) {
             log.error("Не удалось найти информацию о здании: {}", e.getMessage());
-            return new BuildingEntity();
+            return null;
         }
     }
 }

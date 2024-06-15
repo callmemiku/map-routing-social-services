@@ -27,4 +27,11 @@ public class BuildingEntity {
     String efficiency;//y
     String odsIdentity;//y
     String address;
+    String odsAddress;
+    String warmPointId;
+    String addressFull;
+    String consumer;
+    String tpAddress;
+    String tpType;
+    String tpHeatSource;
 }

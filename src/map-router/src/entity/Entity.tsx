@@ -6,11 +6,11 @@ export type Event = {
 export type EventDTO = {
     name: string;
     type: string;
-    //LocalDateTime registrationDatetime, resolvedDatetime;
+    registrationDatetime, resolvedDatetime: string;
     region: string;
     unom: string;
     address: string;
-    //LocalDateTime eventEndedDatetime;
+    eventEndedDatetime: string;
 }
 
 export type Building = {
