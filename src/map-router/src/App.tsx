@@ -72,11 +72,11 @@ export const App = () => {
             {header: "Тип", accessorKey: "event.name"},
             {header: "Источник", accessorKey: "event.type"},
             {header: "Дата начала", accessorKey: "event.registrationDatetime"},
-            {header: "Дата окончания", accessorKey: "event.eventEndedDatetime"},
+            {header: "Название ОДС", accessorKey: "building.odsIdentity"},
             {header: "Группа", accessorKey: "building.type"},
             {header: "k", accessorKey: "building.weightedEfficiency"},
             {
-                header: "Время до остывания ниже нормативной температуры, ч",
+                header: "Время до остывания ниже норм. темп., ч",
                 accessorKey: "building.coolingSpeedBelowNormal"
             }
         ], []
@@ -339,9 +339,9 @@ export const App = () => {
     widths_max.set("Округ", '2vw')
     widths_max.set("Группа", '2vw')
     widths_max.set("k", '1vw')
-    widths_max.set("Время до остывания ниже нормативной температуры, ч", '3vw')
+    widths_max.set("Время до остывания ниже норм. темп., ч", '3vw')
     widths_max.set("Дата начала", '10vw')
-    widths_max.set("Дата окончания", '10vw')
+    widths_max.set("Название ОДС", '10vw')
 
     const place = new Map();
     place.set(0, 'justify')
@@ -358,9 +358,9 @@ export const App = () => {
     widths_min.set("Округ", '4vw')
     widths_min.set("Группа", '4vw')
     widths_min.set("k", '3vw')
-    widths_min.set("Время до остывания ниже нормативной температуры, ч", '6vw')
+    widths_min.set("Время до остывания ниже норм. темп., ч", '5vw')
     widths_min.set("Дата начала", '5vw')
-    widths_min.set("Дата окончания", '5vw')
+    widths_min.set("Название ОДС", '5vw')
     //endregion
 
     const mapTilerMapStyle = useMemo(() => {
