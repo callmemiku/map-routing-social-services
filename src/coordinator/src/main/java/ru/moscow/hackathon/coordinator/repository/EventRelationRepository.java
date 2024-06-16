@@ -8,13 +8,11 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.moscow.hackathon.coordinator.dto.EventDTO;
-import ru.moscow.hackathon.coordinator.entity.BuildingEntity;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Repository
@@ -24,27 +22,6 @@ import java.util.UUID;
 public class EventRelationRepository {
 
     JdbcTemplate jdbcTemplate;
-
-    private void saveRelations(Map<EventDTO, List<BuildingEntity>> events) {
-        events.forEach(
-                (key, value) -> jdbcTemplate.batchUpdate(
-                        "insert into event_to_unom_relation(event_id, unom, order_relation) values (?, ?, ?)",
-                        new BatchPreparedStatementSetter() {
-                            @Override
-                            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                                ps.setObject(1, key.getId());
-                                ps.setString(2, value.get(i).getUnom());
-                                ps.setInt(3, i);
-                            }
-
-                            @Override
-                            public int getBatchSize() {
-                                return value.size();
-                            }
-                        }
-                )
-        );
-    }
 
     public void saveEvents(
             List<EventDTO> events
@@ -83,14 +60,6 @@ public class EventRelationRepository {
                         return events.size();
                     }
                 }
-        );
-    }
-
-    public List<String> findRelated(UUID uuid) {
-        return jdbcTemplate.queryForList(
-                "select unom from event_to_unom_relation where event_id = ? order by order_relation",
-                String.class,
-                uuid
         );
     }
 

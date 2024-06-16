@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 import ru.moscow.hackathon.coordinator.dto.FENotificationDTO;
+import ru.moscow.hackathon.coordinator.dto.FEResponse;
 import ru.moscow.hackathon.coordinator.service.FrontendService;
 
 @CrossOrigin(maxAge = 3600)
@@ -27,7 +28,7 @@ public class FrontendAwareController {
     FrontendService service;
 
     @GetMapping("/gather")
-    public Mono<Page<FENotificationDTO>> gather(
+    public Mono<FEResponse> gather(
             @RequestParam("page") Integer pageNumber,
             @RequestParam("size") Integer size
     ) {

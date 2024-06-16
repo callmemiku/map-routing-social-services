@@ -880,3 +880,52 @@ databaseChangeLog:
             splitStatements: true
             sql: CREATE INDEX idx_gin_building ON power_efficiency_data_vector USING gin ("building_vector");
             stripComments: true
+
+  - changeSet:
+      id: 26
+      author: me
+      changes:
+        - addColumn:
+            tableName: address_registry_data
+            columns:
+              - column:
+                  name: full_address
+                  type: varchar
+  - changeSet:
+      id: 27
+      author: me
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: address_registry_data_vector
+      changes:
+        - createTable:
+            tableName: address_registry_data_vector
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: full_address_vector
+                  type: tsvector
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 28
+      author: me
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            indexExists:
+              indexName: idx_gin_full_address
+      changes:
+        - sql:
+            endDelimiter: \nGO
+            splitStatements: true
+            sql: CREATE INDEX idx_gin_full_address ON address_registry_data_vector USING gin ("full_address_vector");
+            stripComments: true

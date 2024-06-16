@@ -3,11 +3,11 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import React, {Fragment, useEffect, useMemo, useState} from "react";
 import "./App.css";
-import {Coordinates, Event} from "./entity/Entity";
+import {Coordinates, Event, ODSConnections} from "./entity/Entity";
 import {ColumnDef, flexRender, getCoreRowModel, PaginationState, Row, useReactTable} from "@tanstack/react-table";
 import ControlPanel from "./ControlPanel";
 import type {FeatureCollection} from 'geojson';
-import {CircleLayer} from "mapbox-gl";
+import {CircleLayer, LineLayer} from "mapbox-gl";
 
 const MAPTILER_API_KEY = import.meta.env.VITE_MAPTILER_API_KEY;
 const URL = import.meta.env.BE_URL ?? "localhost:8080/";
@@ -23,6 +23,8 @@ export const App = () => {
     const [markers_Red, setMarkersRed]: FeatureCollection = useState(null);
     const [markers_Green, setMarkersGreen]: FeatureCollection = useState(null);
     const [markers_Yellow, setMarkersYellow]: FeatureCollection = useState(null);
+    const [ods_Markers, setOdsMarkers]: FeatureCollection = useState(null);
+    const [ods_conns, setOdsConns]: FeatureCollection = useState(null);
 
     const columns = useMemo<ColumnDef<Event>[]>(
         () => [
@@ -89,10 +91,12 @@ export const App = () => {
                 console.log(e)
             }
         }
+
         const values = [...markersMap.values()];
         const b_markers_yellow = []
         const b_markers_green = []
         const b_markers_red = []
+
         for (let i = 0; i < values.length; i++) {
             const event = values[i];
             try {
@@ -170,6 +174,15 @@ export const App = () => {
         );
     }
 
+    const odsStyle: LineLayer = {
+        type: "line",
+        id: "ods-conns",
+        paint: {
+            "line-color": 'gray',
+            "line-opacity": 50
+        }
+    }
+
     const layerStyleRED: CircleLayer = {
         id: 'red',
         type: 'circle',
@@ -197,6 +210,10 @@ export const App = () => {
         }
     };
 
+    function updateLines(coordinates: Array<ODSConnections>) {
+
+    }
+
     const getPageData = (page: number, size: number) => {
         fetch(
             `http://${URL}update/gather?page=${page}&size=${size}`
@@ -206,11 +223,13 @@ export const App = () => {
                 setTotal(
                     Number.parseInt(parsed.totalPages)
                 )
-                return parsed.content;
+                return parsed;
             })
             .then((json) => {
-                setTblData(json as Array<Event>)
-                updateMarkers(json as Array<Event>)
+                console.log(json)
+                setTblData(json.page.content as Array<Event>)
+                updateMarkers(json.page.content as Array<Event>)
+                updateLines(json.coordinates as Array<ODSConnections>)
             });
     };
 

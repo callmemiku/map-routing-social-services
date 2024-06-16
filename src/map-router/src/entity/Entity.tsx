@@ -24,3 +24,8 @@ export type Coordinates = {
     coordinates: number[];
     type: string;
 }
+
+export type ODSConnections = {
+    geoJSON: string;
+    connected: number[][];
+}

@@ -9,7 +9,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import ru.moscow.hackathon.coordinator.dto.FENotificationDTO;
+import ru.moscow.hackathon.coordinator.dto.FEResponse;
 import ru.moscow.hackathon.coordinator.repository.FullBuildingInfoRepository;
+import ru.moscow.hackathon.coordinator.repository.OdsConnectionRepository;
 import ru.moscow.hackathon.coordinator.repository.jpa.EventJpaRepository;
 
 import java.util.List;
@@ -24,6 +26,7 @@ public class FrontendService {
     ConfirmedEventsProcessor processor;
     FullBuildingInfoRepository infoRepository;
     EventJpaRepository jpaRepository;
+    OdsConnectionRepository odsConnectionRepository;
 
     List<String> TYPES = List.of(
             "P1 <= 0",
@@ -40,7 +43,7 @@ public class FrontendService {
             "Течь в системе отопления"
     );
 
-    public Mono<Page<FENotificationDTO>> response(
+    public Mono<FEResponse> response(
             Pageable pageable
     ) {
         return Mono.just(
@@ -93,6 +96,13 @@ public class FrontendService {
                                     .build();
                         }
                 )
+        ).map(list -> {
+                    var conns = odsConnectionRepository.connectionsDTO(list);
+                    return FEResponse.builder()
+                            .connections(conns)
+                            .page(list)
+                            .build();
+                }
         );
     }
 

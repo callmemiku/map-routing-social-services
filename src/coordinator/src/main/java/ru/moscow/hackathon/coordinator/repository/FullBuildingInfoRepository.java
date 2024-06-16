@@ -78,7 +78,7 @@ public class FullBuildingInfoRepository {
                             FROM power_efficiency_data ped
                             LEFT JOIN power_efficiency_data_vector pedv ON ped.id = pedv.id
                             WHERE "building_vector" @@ plainto_tsquery('%s')
-                            ORDER BY ts_rank("building_vector", plainto_tsquery('%s')) DESC;
+                            ORDER BY ts_rank("building_vector", plainto_tsquery('%s')) DESC limit 1;
                     """;
 
             PEInfo peInfo;

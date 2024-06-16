@@ -19,7 +19,7 @@ public enum EfficiencyType {
     List<String> types;
 
     public static Integer priority(String type) {
-        if (type == null) {
+        if (type == null || type.isBlank() || type.isEmpty()) {
             return 1;
         } else {
             return EnumSet.allOf(EfficiencyType.class)
@@ -28,7 +28,7 @@ public enum EfficiencyType {
                     .map(it -> it.priority)
                     .findFirst()
                     .orElseThrow(
-                            () -> new IllegalArgumentException("Неизвестный тип потребителя: " + type)
+                            () -> new IllegalArgumentException("Неизвестный тип эффективности: " + type)
                     );
         }
     }

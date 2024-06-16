@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 import ru.moscow.hackathon.coordinator.dto.EventDTO;
 import ru.moscow.hackathon.coordinator.dto.StatusDTO;
-import ru.moscow.hackathon.coordinator.service.EventHandlerService;
+import ru.moscow.hackathon.coordinator.service.ConfirmedEventsProcessor;
+
+import java.util.List;
 
 @RestController
 @Slf4j
@@ -20,12 +22,12 @@ import ru.moscow.hackathon.coordinator.service.EventHandlerService;
 @RequiredArgsConstructor
 public class EventHandlingController {
 
-    EventHandlerService service;
+    ConfirmedEventsProcessor processor;
 
     @PostMapping("/post")
     public Mono<StatusDTO> acquireEvent(
-            @RequestBody EventDTO event
+            @RequestBody List<EventDTO> events
     ) {
-        return service.handleEvent(event);
+        return processor.process(events);
     }
 }

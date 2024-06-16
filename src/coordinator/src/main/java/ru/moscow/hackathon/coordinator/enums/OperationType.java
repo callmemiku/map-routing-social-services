@@ -34,7 +34,7 @@ public enum OperationType {
     ),
     ADDRESS_REGISTRY_DATA(
             44,
-            List.of(4, 12, 42, 43)
+            List.of(3, 4, 12, 42, 43)
     ),
     DISCONNECTIONS_DATA(
             10,
