@@ -64,12 +64,16 @@ public class FrontendService {
                                     ),
                                     v
                             );
-                            if (building == null){
+                            if (building == null) {
                                 add(info, "Информация о здании", "отсутствует");
-                            } else  {
+                            } else {
                                 add(info, "Адрес (БТИ)", building.getAddress());
                                 add(info, "Полный адрес (БТИ)", building.getAddressFull());
                                 add(info, "Потребитель", building.getConsumer());
+                                add(info, "Энергоэффективность", building.getEfficiency());
+                                add(info, "Количество работников", building.getEmployeeCount());
+                                add(info, "Отапливаемая площадь", building.getFullHeatedSquare());
+                                add(info, "Этажность", building.getFloors());
                                 add(info, "Время работы", building.getWorkingHours());
                                 add(info, "ОДС", building.getOdsIdentity());
                                 add(info, "Адрес ОДС", building.getOdsAddress());
@@ -77,7 +81,8 @@ public class FrontendService {
                                 add(info, "Адрес ТП", building.getTpAddress());
                                 add(info, "Тип ТП", building.getTpType());
                                 add(info, "Источник тепла", building.getTpHeatSource());
-                                add(info, "Скорость полного остывания", building.getCoolingSpeedFull() + " ч");
+                                add(info, "Время до полного остывания", building.getCoolingSpeedFull() + " ч");
+
                             }
                             add(info, "Адрес", address);
                             add(info, "Дата решения", eventResolved);
@@ -91,17 +96,24 @@ public class FrontendService {
         );
     }
 
-    private void add(StringBuilder builder, String destination, String value) {
-        if (value == null || value.isEmpty() || value.isBlank()) {
+    private void add(StringBuilder builder, String destination, Object value) {
+
+        if (value == null) {
 
         } else {
-            builder.append(
-                    String.format(
-                            "\t%s: %s.\n",
-                            destination,
-                            value
-                    )
-            );
+            var string = value.toString();
+
+            if (string.isEmpty() || string.isBlank()) {
+
+            } else {
+                builder.append(
+                        String.format(
+                                "\t%s: %s.\n",
+                                destination,
+                                value
+                        )
+                );
+            }
         }
     }
 
