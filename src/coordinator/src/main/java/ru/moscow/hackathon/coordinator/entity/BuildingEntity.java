@@ -40,4 +40,5 @@ public class BuildingEntity {
     Integer floors;
     Double fullHeatedSquare;
     String simpleAddress;
+    String btiClass;
 }

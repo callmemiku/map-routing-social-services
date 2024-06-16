@@ -8,12 +8,14 @@ import {ColumnDef, flexRender, getCoreRowModel, PaginationState, Row, useReactTa
 import ControlPanel from "./ControlPanel";
 import type {FeatureCollection} from 'geojson';
 import {
-    layerStyleGREEN,
-    layerStyleRED,
-    layerStyleYELLOW,
+    layerStyleAny,
+    layerStyleOneDay,
+    layerStyleTenHours,
+    layerStyleThreeHours,
+    layerStyleUrgent,
     odsStyle,
     odsStylePoints,
-    odsStylePointsBuildings
+    odsStylePointsBuildings, popupLayer
 } from "./Styles";
 
 const MAPTILER_API_KEY = import.meta.env.VITE_MAPTILER_API_KEY;
@@ -27,12 +29,16 @@ const MAPS_DEFAULT_LOCATION = {
 
 export const App = () => {
 
-    const [markers_Red, setMarkersRed]: FeatureCollection = useState(null);
-    const [markers_Green, setMarkersGreen]: FeatureCollection = useState(null);
-    const [markers_Yellow, setMarkersYellow]: FeatureCollection = useState(null);
+    const [markersAny, setMarkersAny]: FeatureCollection = useState(null);
+    const [markersOneDay, setMarkersOneDay]: FeatureCollection = useState(null);
+    const [markersTenHours, setMarkersTenHours]: FeatureCollection = useState(null);
+    const [markersThreeHours, setMarkersThreeHours]: FeatureCollection = useState(null);
+    const [markersUrgently, setMarkersUrgently]: FeatureCollection = useState(null);
+
     const [ods_Markers, setOdsMarkers]: FeatureCollection = useState(null);
     const [ods_MarkersBuildings, setOdsMarkersBuildings]: FeatureCollection = useState(null);
     const [ods_conns, setOdsConns]: FeatureCollection = useState(null);
+
 
     const columns = useMemo<ColumnDef<Event>[]>(
         () => [
@@ -69,7 +75,10 @@ export const App = () => {
             {header: "Дата окончания", accessorKey: "event.eventEndedDatetime"},
             {header: "Группа", accessorKey: "building.type"},
             {header: "k", accessorKey: "building.weightedEfficiency"},
-            {header: "w, ч", accessorKey: "building.coolingSpeedBelowNormal"}
+            {
+                header: "Время до остывания ниже нормативной температуры, ч",
+                accessorKey: "building.coolingSpeedBelowNormal"
+            }
         ], []
     );
 
@@ -82,12 +91,18 @@ export const App = () => {
     const [total, setTotal] = useState(0);
 
     function updateMarkers(events: Array<Event>) {
-        const b_markers_yellow = []
-        const b_markers_green = []
-        const b_markers_red = []
+
+        const b_markersAny = []
+        const b_markersOneDay = []
+        const b_markersTenHours = []
+        const b_markersThreeHours = []
+        const b_markersUrgently = []
 
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
+
+            console.log(event)
+
             try {
                 let geo: Coordinates = JSON.parse(
                     event.building
@@ -98,8 +113,8 @@ export const App = () => {
                 );
 
                 const priority = event.building.weightedEfficiency;
-                if (priority > 0.69) {
-                    b_markers_red.push(
+                if (priority >= 0.98) {
+                    b_markersUrgently.push(
                         {
                             "type": "Feature",
                             "geometry": {
@@ -108,8 +123,8 @@ export const App = () => {
                             }
                         }
                     )
-                } else if (priority < 0.35) {
-                    b_markers_green.push(
+                } else if (priority >= 0.81 && priority <= 0.97) {
+                    b_markersThreeHours.push(
                         {
                             "type": "Feature",
                             "geometry": {
@@ -118,8 +133,28 @@ export const App = () => {
                             }
                         }
                     )
-                } else if (priority > 0.34 && priority < 0.7) {
-                    b_markers_yellow.push(
+                } else if (priority >= 0.73 && priority <= 0.8) {
+                    b_markersTenHours.push(
+                        {
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": [geo.coordinates[0], geo.coordinates[1]]
+                            }
+                        }
+                    )
+                } else if (priority >= 0.66 && priority <= 0.72) {
+                    b_markersOneDay.push(
+                        {
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": [geo.coordinates[0], geo.coordinates[1]]
+                            }
+                        }
+                    )
+                } else {
+                    b_markersAny.push(
                         {
                             "type": "Feature",
                             "geometry": {
@@ -129,30 +164,50 @@ export const App = () => {
                         }
                     )
                 }
+
             } catch (e) {
                 console.log(e)
             }
         }
-        const red: FeatureCollection = {
+
+        const urgent: FeatureCollection = {
             type: "FeatureCollection",
-            features: b_markers_red
+            features: b_markersUrgently
         };
-        setMarkersRed(
-            red
+        setMarkersUrgently(
+            urgent
         );
-        const green: FeatureCollection = {
+
+        const upToThree: FeatureCollection = {
             type: "FeatureCollection",
-            features: b_markers_green
+            features: b_markersThreeHours
         };
-        setMarkersGreen(
-            green
+        setMarkersThreeHours(
+            upToThree
         );
-        const yellow: FeatureCollection = {
+
+        const upToTen: FeatureCollection = {
             type: "FeatureCollection",
-            features: b_markers_yellow
+            features: b_markersTenHours
         };
-        setMarkersYellow(
-            yellow
+        setMarkersTenHours(
+            upToTen
+        );
+
+        const upToDay: FeatureCollection = {
+            type: "FeatureCollection",
+            features: b_markersOneDay
+        };
+        setMarkersOneDay(
+            upToDay
+        );
+
+        const any: FeatureCollection = {
+            type: "FeatureCollection",
+            features: b_markersAny
+        };
+        setMarkersAny(
+            any
         );
     }
 
@@ -243,7 +298,6 @@ export const App = () => {
                 return parsed;
             })
             .then((json) => {
-                console.log(json)
                 setTblData(json.page.content as Array<Event>)
                 updateMarkers(json.page.content as Array<Event>)
                 updateLines(json.connections as Array<ODSConnections>)
@@ -285,7 +339,7 @@ export const App = () => {
     widths_max.set("Округ", '2vw')
     widths_max.set("Группа", '2vw')
     widths_max.set("k", '1vw')
-    widths_max.set("w, ч", '1vw')
+    widths_max.set("Время до остывания ниже нормативной температуры, ч", '3vw')
     widths_max.set("Дата начала", '10vw')
     widths_max.set("Дата окончания", '10vw')
 
@@ -304,7 +358,7 @@ export const App = () => {
     widths_min.set("Округ", '4vw')
     widths_min.set("Группа", '4vw')
     widths_min.set("k", '3vw')
-    widths_min.set("w, ч", '3vw')
+    widths_min.set("Время до остывания ниже нормативной температуры, ч", '6vw')
     widths_min.set("Дата начала", '5vw')
     widths_min.set("Дата окончания", '5vw')
     //endregion
@@ -335,6 +389,11 @@ export const App = () => {
         (state, updates) => ({...state, ...updates}
         ), {}
     );
+
+    var interactiveSource = <Source key={'ods-pop'} type="geojson" data={ods_Markers}>
+        <MapLayer key='ods-pop' type={'symbol'} {...popupLayer}
+                  layout={{visibility: layersVisibility["ods"]}}/>
+    </Source>
 
     return (
         <>
@@ -521,17 +580,29 @@ export const App = () => {
                 </Source>
 
 
-                <Source key='high' type="geojson" data={markers_Red}>
-                    <MapLayer key={'high'} type={'circle'} {...layerStyleRED}
-                              layout={{visibility: layersVisibility["high"]}}/>
+                <Source key='urgent' type="geojson" data={markersUrgently}>
+                    <MapLayer key={'urgent'} type={'circle'} {...layerStyleUrgent}
+                              layout={{visibility: layersVisibility["urgent"]}}/>
                 </Source>
-                <Source key='mid' type="geojson" data={markers_Yellow}>
-                    <MapLayer key={'mid'} type={'circle'} {...layerStyleYELLOW}
-                              layout={{visibility: layersVisibility["mid"]}}/>
+
+                <Source key='threeHours' type="geojson" data={markersThreeHours}>
+                    <MapLayer key={'threeHours'} type={'circle'} {...layerStyleThreeHours}
+                              layout={{visibility: layersVisibility["threeHours"]}}/>
                 </Source>
-                <Source key={'low'} type="geojson" data={markers_Green}>
-                    <MapLayer key='low' type={'circle'} {...layerStyleGREEN}
-                              layout={{visibility: layersVisibility["low"]}}/>
+
+                <Source key={'tenHours'} type="geojson" data={markersTenHours}>
+                    <MapLayer key='tenHours' type={'circle'} {...layerStyleTenHours}
+                              layout={{visibility: layersVisibility["tenHours"]}}/>
+                </Source>
+
+                <Source key={'oneDay'} type="geojson" data={markersOneDay}>
+                    <MapLayer key='oneDay' type={'circle'} {...layerStyleOneDay}
+                              layout={{visibility: layersVisibility["oneDay"]}}/>
+                </Source>
+
+                <Source key={'any'} type="geojson" data={markersAny}>
+                    <MapLayer key='any' type={'circle'} {...layerStyleAny}
+                              layout={{visibility: layersVisibility["any"]}}/>
                 </Source>
 
             </GeoMap>

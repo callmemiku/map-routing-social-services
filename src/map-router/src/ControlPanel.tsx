@@ -2,9 +2,11 @@ import React, {useEffect, useState} from "react";
 
 function ControlPanel(props) {
     const [visibility, setVisibility] = useState({
-            low:  true,
-            mid:  true,
-            high: true,
+            urgent: true,
+            tenHours: true,
+            threeHours: true,
+            any: true,
+            oneDay: true,
             ods: true,
             odsRest: true,
         }
@@ -26,23 +28,37 @@ function ControlPanel(props) {
             <h3>Слои</h3>
             <h4 style={{marginRight: '10px'}}>
                 <input type="checkbox"
-                       checked={visibility["low"]}
-                       onChange={evt => onVisibilityChange("low", evt.target.checked)}
+                       checked={visibility["any"]}
+                       onChange={evt => onVisibilityChange("any", evt.target.checked)}
 
-                /> Низкий приоритет
+                /> Любое время устранения
             </h4>
             <h4>
                 <input type="checkbox"
-                       checked={visibility["mid"]}
-                       onChange={evt => onVisibilityChange("mid", evt.target.checked)}
+                       checked={visibility["oneDay"]}
+                       onChange={evt => onVisibilityChange("oneDay", evt.target.checked)}
 
-                /> Средний приоритет
+                /> Устранение аварии до 1 суток
             </h4>
             <h4 style={{marginRight: '10px'}}>
                 <input type="checkbox"
-                       checked={visibility["high"]}
-                       onChange={evt => onVisibilityChange("high", evt.target.checked)}
-                /> Высокий приоритет
+                       checked={visibility["tenHours"]}
+                       onChange={evt => onVisibilityChange("tenHours", evt.target.checked)}
+
+                /> Устранение аварии до 10 часов
+            </h4>
+            <h4>
+                <input type="checkbox"
+                       checked={visibility["threeHours"]}
+                       onChange={evt => onVisibilityChange("threeHours", evt.target.checked)}
+
+                /> Устранение аварии до 3 часов
+            </h4>
+            <h4 style={{marginRight: '10px'}}>
+                <input type="checkbox"
+                       checked={visibility["urgent"]}
+                       onChange={evt => onVisibilityChange("urgent", evt.target.checked)}
+                /> Срочное устранение аварии
             </h4>
             <h4 style={{marginRight: '10px'}}>
                 <input type="checkbox"

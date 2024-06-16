@@ -1,4 +1,14 @@
-import {CircleLayer, LineLayer} from "mapbox-gl";
+import {CircleLayer, LineLayer, SymbolLayer} from "mapbox-gl";
+
+export const popupLayer: SymbolLayer = {
+    id: "popup-ods-layer",
+    type: "symbol",
+    source: "popup-ods-layer",
+    layout: {
+        'icon-image': 'custom-marker',
+        'icon-overlap': 'always'
+    }
+}
 
 export const odsStyle: LineLayer = {
     type: "line",
@@ -29,29 +39,47 @@ export const odsStylePointsBuildings: CircleLayer = {
     }
 }
 
-export const layerStyleRED: CircleLayer = {
-    id: 'red',
+export const layerStyleUrgent: CircleLayer = {
+    id: 'urgent',
     type: 'circle',
     paint: {
         'circle-radius': 10,
-        'circle-color': 'red'
+        'circle-color': '#FF0000'
     }
 };
 
-export const layerStyleYELLOW: CircleLayer = {
-    id: 'yellow',
+export const layerStyleThreeHours: CircleLayer = {
+    id: 'threeHours',
     type: 'circle',
     paint: {
         'circle-radius': 10,
-        'circle-color': 'yellow'
+        'circle-color': '#FD620B'
     }
 };
 
-export const layerStyleGREEN: CircleLayer = {
-    id: 'green',
+export const layerStyleTenHours: CircleLayer = {
+    id: 'tenHours',
     type: 'circle',
     paint: {
         'circle-radius': 10,
-        'circle-color': 'green'
+        'circle-color': '#E7A66A'
+    }
+};
+
+export const layerStyleOneDay: CircleLayer = {
+    id: 'oneDay',
+    type: 'circle',
+    paint: {
+        'circle-radius': 10,
+        'circle-color': '#FFD600'
+    }
+};
+
+export const layerStyleAny: CircleLayer = {
+    id: 'any',
+    type: 'circle',
+    paint: {
+        'circle-radius': 10,
+        'circle-color': '#D3D98E'
     }
 };

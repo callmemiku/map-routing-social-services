@@ -40,7 +40,8 @@ public class FullBuildingInfoRepository {
                             mcd.heating_station_type as tp_st,
                             pcd.exterior_wall_material as ewm,
                             bd.exterior_wall_material as ewm_bti,
-                            ard.simple_address as sad
+                            ard.simple_address as sad,
+                            bd.building_class as bti_c
                             from asupr_data ad
                             left join address_registry_data ard on ad.unom = ard.unom
                             left join moek_connection_data mcd on ad.warm_point_id = mcd.heating_station_number
@@ -64,6 +65,7 @@ public class FullBuildingInfoRepository {
                             .material(rs.getString("ewm"))
                             .materialBTI(rs.getString("ewm_bti"))
                             .simpleAddress(rs.getString("sad"))
+                            .btiClass(rs.getString("bti_c"))
                             .build(),
                     unom
             );

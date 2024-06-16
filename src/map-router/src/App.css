@@ -90,7 +90,7 @@ tbody tr:hover {
 .control-panel {
   position: fixed;
   left: 40vw;
-  bottom: 76vh;
+  bottom: 70vh;
   background-color:rgba(0, 0, 0, 0.5);
   padding: 10px;
 }

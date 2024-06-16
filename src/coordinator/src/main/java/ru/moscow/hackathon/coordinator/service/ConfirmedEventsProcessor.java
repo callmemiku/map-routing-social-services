@@ -12,6 +12,7 @@ import ru.moscow.hackathon.coordinator.dto.StatusDTO;
 import ru.moscow.hackathon.coordinator.entity.BuildingEntity;
 import ru.moscow.hackathon.coordinator.entity.BuildingWithPriorityEntity;
 import ru.moscow.hackathon.coordinator.enums.coefficients.BetaCoefficient;
+import ru.moscow.hackathon.coordinator.enums.coefficients.BtiBuildingType;
 import ru.moscow.hackathon.coordinator.enums.coefficients.BuildingType;
 import ru.moscow.hackathon.coordinator.enums.coefficients.CoolingBelowNormalType;
 import ru.moscow.hackathon.coordinator.enums.coefficients.EfficiencyType;
@@ -109,7 +110,7 @@ public class ConfirmedEventsProcessor {
             var border = Math.cbrt(volume);
             var squareOuterFull = border * border * 6;
 
-            beta = material.getHeatCapacity() * material.getDensity() * volume / ( 15 * squareOuterFull );
+            beta = material.getHeatCapacity() * material.getDensity() * volume / (15 * squareOuterFull);
 
         } catch (Exception e) {
             beta = BetaCoefficient.priority(
@@ -118,8 +119,10 @@ public class ConfirmedEventsProcessor {
             );
         }
 
+        var normal = BtiBuildingType.byType(it.getBtiClass());
 
         var coolingBelowNormal = computeBelowNormalCoolingTime(
+                normal,
                 beta,
                 weather
         );
@@ -149,12 +152,10 @@ public class ConfirmedEventsProcessor {
     }
 
     private Double computeBelowNormalCoolingTime(
+            Integer normal,
             Double beta,
             Double weather
     ) {
-
-        double normal = 24.0;
-
         if (weather > normal) {
             return -1.0;
         }

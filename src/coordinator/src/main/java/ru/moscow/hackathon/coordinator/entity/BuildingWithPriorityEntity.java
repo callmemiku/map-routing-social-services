@@ -50,7 +50,8 @@ public class BuildingWithPriorityEntity extends BuildingEntity {
                 parent.materialBTI,
                 parent.floors,
                 parent.fullHeatedSquare,
-                parent.simpleAddress
+                parent.simpleAddress,
+                parent.btiClass
         );
     }
 }
