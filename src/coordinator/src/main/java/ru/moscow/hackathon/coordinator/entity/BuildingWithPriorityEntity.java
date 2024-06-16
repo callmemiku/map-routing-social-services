@@ -24,8 +24,8 @@ public class BuildingWithPriorityEntity extends BuildingEntity {
     ) {
         this(parent);
         this.weightedEfficiency = String.format("%.2f", weightedEfficiency);
-        this.coolingSpeedFull = String.format("%.2f", coolingSpeedFull);
-        this.coolingSpeedBelowNormal = String.format("%.2f", coolingSpeedBelowNormal);
+        this.coolingSpeedFull = coolingSpeedFull == Double.MAX_VALUE ? "—" : String.format("%.2f", coolingSpeedFull);
+        this.coolingSpeedBelowNormal = coolingSpeedBelowNormal == Double.MAX_VALUE ? "—" : String.format("%.2f", coolingSpeedBelowNormal);
     }
 
     public BuildingWithPriorityEntity(BuildingEntity parent) {

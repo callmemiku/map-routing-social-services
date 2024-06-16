@@ -77,7 +77,6 @@ public class ConfirmedEventsProcessor {
 
         var groupc = 0.3 / group;
 
-        //test by group
         var whc = 0.25 / WorkingHoursType.priority(
                 group
         );
@@ -137,6 +136,7 @@ public class ConfirmedEventsProcessor {
         );
 
         var fullCooling = computeFullCoolingTime(
+                normal,
                 beta,
                 weather
         );
@@ -157,41 +157,35 @@ public class ConfirmedEventsProcessor {
     }
 
     private Double computeBelowNormalCoolingTime(
-            Integer belowNormal,
+            Integer normal,
             Double beta,
             Double weather
     ) {
-
-        var normal = 24;
-
         if (weather > normal) {
-            return -1.0;
+            return Double.MAX_VALUE;
         }
-
-        double bn = weather > belowNormal ? weather + 1 : belowNormal;
-
+        double bn = normal - 1;
+        if (bn == weather) {
+            bn = bn + .1d;
+        }
         return beta * Math.log(
                 (normal - weather) / (Math.abs(bn - weather))
         );
     }
 
     private Double computeFullCoolingTime(
+            Integer normal,
             Double beta,
             Double weather
     ) {
-        double normal = 24.0;
 
         if (weather > normal) {
-            return -1.;
+            return Double.MAX_VALUE;
         }
 
-        double threshold = 8.0;
-        if (weather > threshold) {
-            threshold = weather + 1;
-        }
-
+        var t1 = weather > normal ? weather : normal;
         return beta * Math.log(
-                (normal - weather) / (Math.abs(threshold - weather))
+                (t1 - weather) / (Math.abs(weather + 1 - weather))
         );
     }
 }

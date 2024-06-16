@@ -4,7 +4,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -85,7 +84,6 @@ public class FrontendService {
                                 add(info, "Тип ТП", building.getTpType());
                                 add(info, "Источник тепла", building.getTpHeatSource());
                                 add(info, "Время до полного остывания", building.getCoolingSpeedFull() + " ч");
-
                             }
                             add(info, "Адрес", address);
                             add(info, "Дата решения", eventResolved);
