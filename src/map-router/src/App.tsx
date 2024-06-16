@@ -7,7 +7,14 @@ import {Coordinates, Event, ODSConnections} from "./entity/Entity";
 import {ColumnDef, flexRender, getCoreRowModel, PaginationState, Row, useReactTable} from "@tanstack/react-table";
 import ControlPanel from "./ControlPanel";
 import type {FeatureCollection} from 'geojson';
-import {CircleLayer, LineLayer} from "mapbox-gl";
+import {
+    layerStyleGREEN,
+    layerStyleRED,
+    layerStyleYELLOW,
+    odsStyle,
+    odsStylePoints,
+    odsStylePointsBuildings
+} from "./Styles";
 
 const MAPTILER_API_KEY = import.meta.env.VITE_MAPTILER_API_KEY;
 const URL = import.meta.env.BE_URL ?? "localhost:8080/";
@@ -24,6 +31,7 @@ export const App = () => {
     const [markers_Green, setMarkersGreen]: FeatureCollection = useState(null);
     const [markers_Yellow, setMarkersYellow]: FeatureCollection = useState(null);
     const [ods_Markers, setOdsMarkers]: FeatureCollection = useState(null);
+    const [ods_MarkersBuildings, setOdsMarkersBuildings]: FeatureCollection = useState(null);
     const [ods_conns, setOdsConns]: FeatureCollection = useState(null);
 
     const columns = useMemo<ColumnDef<Event>[]>(
@@ -74,31 +82,12 @@ export const App = () => {
     const [total, setTotal] = useState(0);
 
     function updateMarkers(events: Array<Event>) {
-        let markersMap = new Map<string, Event>();
-        for (let i = 0; i < events.length; i++) {
-            const event = events[i];
-            try {
-                const unom = event.building.unom;
-                if (markersMap.has(unom)) {
-                    const h = markersMap.get(unom);
-                    if (h.building.weightedEfficiency < event.building.weightedEfficiency) {
-                        markersMap.set(unom, event);
-                    }
-                } else {
-                    markersMap.set(unom, event)
-                }
-            } catch (e) {
-                console.log(e)
-            }
-        }
-
-        const values = [...markersMap.values()];
         const b_markers_yellow = []
         const b_markers_green = []
         const b_markers_red = []
 
-        for (let i = 0; i < values.length; i++) {
-            const event = values[i];
+        for (let i = 0; i < events.length; i++) {
+            const event = events[i];
             try {
                 let geo: Coordinates = JSON.parse(
                     event.building
@@ -144,13 +133,6 @@ export const App = () => {
                 console.log(e)
             }
         }
-        console.log('red')
-        console.log(b_markers_red)
-        console.log('yellow')
-        console.log(b_markers_yellow)
-        console.log('green')
-        console.log(b_markers_green)
-
         const red: FeatureCollection = {
             type: "FeatureCollection",
             features: b_markers_red
@@ -174,44 +156,79 @@ export const App = () => {
         );
     }
 
-    const odsStyle: LineLayer = {
-        type: "line",
-        id: "ods-conns",
-        paint: {
-            "line-color": 'gray',
-            "line-opacity": 50
-        }
-    }
-
-    const layerStyleRED: CircleLayer = {
-        id: 'red',
-        type: 'circle',
-        paint: {
-            'circle-radius': 10,
-            'circle-color': 'red'
-        }
-    };
-
-    const layerStyleYELLOW: CircleLayer = {
-        id: 'yellow',
-        type: 'circle',
-        paint: {
-            'circle-radius': 10,
-            'circle-color': 'yellow'
-        }
-    };
-
-    const layerStyleGREEN: CircleLayer = {
-        id: 'green',
-        type: 'circle',
-        paint: {
-            'circle-radius': 10,
-            'circle-color': 'green'
-        }
-    };
-
     function updateLines(coordinates: Array<ODSConnections>) {
 
+        const ods_markers_new = []
+        const ods_lines_new = []
+        const ods_buildings = []
+
+        for (let i = 0; i < coordinates.length; i++) {
+            var curr = coordinates[i];
+            let geo: Coordinates = JSON.parse(
+                curr.geoJSON
+                    .replace("coordinates=", '"coordinates": ')
+                    .replace("type=", '"type": ')
+                    .replace("Point", '"Point"')
+            );
+            ods_markers_new.push(
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [geo.coordinates[0], geo.coordinates[1]]
+                    }
+                }
+            );
+
+            for (let j = 0; j < curr.connected.length; j++) {
+                var arr = curr.connected[j];
+                ods_buildings.push(
+                    {
+                        "type": "Feature",
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [arr[0], arr[1]]
+                        }
+                    }
+                );
+
+                ods_lines_new.push(
+                    {
+                        "type": "Feature",
+                        "geometry": {
+                            "type": "LineString",
+                            "coordinates": [
+                                [geo.coordinates[0], geo.coordinates[1]],
+                                [arr[0], arr[1]]
+                            ]
+                        }
+                    }
+                )
+            }
+
+
+        }
+        const ods_collection: FeatureCollection = {
+            type: "FeatureCollection",
+            features: ods_markers_new
+        };
+        setOdsMarkers(
+            ods_collection
+        )
+
+        const ods_buildings_collection: FeatureCollection = {
+            type: "FeatureCollection",
+            features: ods_buildings
+        };
+        setOdsMarkersBuildings(
+            ods_buildings_collection
+        )
+
+        const lines: FeatureCollection = {
+            type: "FeatureCollection",
+            features: ods_lines_new
+        }
+        setOdsConns(lines)
     }
 
     const getPageData = (page: number, size: number) => {
@@ -221,7 +238,7 @@ export const App = () => {
             .then(async (response) => {
                 var parsed = await response.json();
                 setTotal(
-                    Number.parseInt(parsed.totalPages)
+                    Number.parseInt(parsed.page.totalPages)
                 )
                 return parsed;
             })
@@ -229,7 +246,7 @@ export const App = () => {
                 console.log(json)
                 setTblData(json.page.content as Array<Event>)
                 updateMarkers(json.page.content as Array<Event>)
-                updateLines(json.coordinates as Array<ODSConnections>)
+                updateLines(json.connections as Array<ODSConnections>)
             });
     };
 
@@ -487,15 +504,36 @@ export const App = () => {
                 mapLib={maplibregl}
                 mapStyle={mapTilerMapStyle}
             >
+
+                <Source key={'ods'} type="geojson" data={ods_Markers}>
+                    <MapLayer key='ods' type={'circle'} {...odsStylePoints}
+                              layout={{visibility: layersVisibility["ods"]}}/>
+                </Source>
+
+                <Source key={'ods-buildings'} type="geojson" data={ods_MarkersBuildings}>
+                    <MapLayer key='ods-buildings' type={'circle'} {...odsStylePointsBuildings}
+                              layout={{visibility: layersVisibility["odsRest"]}}/>
+                </Source>
+
+                <Source key={'ods-lines'} type="geojson" data={ods_conns}>
+                    <MapLayer key='ods-lines' type={'circle'} {...odsStyle}
+                              layout={{visibility: layersVisibility["odsRest"]}}/>
+                </Source>
+
+
                 <Source key='high' type="geojson" data={markers_Red}>
-                    <MapLayer key={'high'} type={'circle'} {...layerStyleRED} layout={{ visibility: layersVisibility["high"] }}/>
+                    <MapLayer key={'high'} type={'circle'} {...layerStyleRED}
+                              layout={{visibility: layersVisibility["high"]}}/>
                 </Source>
                 <Source key='mid' type="geojson" data={markers_Yellow}>
-                    <MapLayer key={'mid'} type={'circle'} {...layerStyleYELLOW} layout={{ visibility: layersVisibility["mid"] }}/>
+                    <MapLayer key={'mid'} type={'circle'} {...layerStyleYELLOW}
+                              layout={{visibility: layersVisibility["mid"]}}/>
                 </Source>
                 <Source key={'low'} type="geojson" data={markers_Green}>
-                    <MapLayer  key='low' type={'circle'} {...layerStyleGREEN} layout={{ visibility: layersVisibility["low"] }}/>
+                    <MapLayer key='low' type={'circle'} {...layerStyleGREEN}
+                              layout={{visibility: layersVisibility["low"]}}/>
                 </Source>
+
             </GeoMap>
             <ControlPanel onChange={setLayersVisibility}/>
         </>

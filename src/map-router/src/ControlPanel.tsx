@@ -4,7 +4,9 @@ function ControlPanel(props) {
     const [visibility, setVisibility] = useState({
             low:  true,
             mid:  true,
-            high: true
+            high: true,
+            ods: true,
+            odsRest: true,
         }
     );
 
@@ -41,6 +43,18 @@ function ControlPanel(props) {
                        checked={visibility["high"]}
                        onChange={evt => onVisibilityChange("high", evt.target.checked)}
                 /> Высокий приоритет
+            </h4>
+            <h4 style={{marginRight: '10px'}}>
+                <input type="checkbox"
+                       checked={visibility["ods"]}
+                       onChange={evt => onVisibilityChange("ods", evt.target.checked)}
+                /> ОДС
+            </h4>
+            <h4 style={{marginRight: '10px'}}>
+                <input type="checkbox"
+                       checked={visibility["odsRest"]}
+                       onChange={evt => onVisibilityChange("odsRest", evt.target.checked)}
+                /> Связь объектов с ОДС
             </h4>
         </div>
     )
