@@ -12,13 +12,20 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class BuildingWithPriorityEntity extends BuildingEntity {
 
-    Double weightedEfficiency;
-    Double coolingSpeed;
+    String weightedEfficiency;
+    String coolingSpeedFull;
+    String coolingSpeedBelowNormal;
 
-    public BuildingWithPriorityEntity(BuildingEntity parent, Double weightedEfficiency, Double coolingSpeed) {
+    public BuildingWithPriorityEntity(
+            BuildingEntity parent,
+            Double weightedEfficiency,
+            Double coolingSpeedFull,
+            Double coolingSpeedBelowNormal
+    ) {
         this(parent);
-        this.weightedEfficiency = weightedEfficiency;
-        this.coolingSpeed = coolingSpeed;
+        this.weightedEfficiency = String.format("%.2f", weightedEfficiency);
+        this.coolingSpeedFull = String.format("%.2f", coolingSpeedFull);
+        this.coolingSpeedBelowNormal = String.format("%.2f", coolingSpeedBelowNormal);
     }
 
     public BuildingWithPriorityEntity(BuildingEntity parent) {
@@ -37,7 +44,13 @@ public class BuildingWithPriorityEntity extends BuildingEntity {
                 parent.consumer,
                 parent.tpAddress,
                 parent.tpType,
-                parent.tpHeatSource
+                parent.tpHeatSource,
+                parent.employeeCount,
+                parent.material,
+                parent.materialBTI,
+                parent.floors,
+                parent.fullHeatedSquare,
+                parent.simpleAddress
         );
     }
 }

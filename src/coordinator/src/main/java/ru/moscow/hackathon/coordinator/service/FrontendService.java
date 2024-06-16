@@ -12,6 +12,7 @@ import ru.moscow.hackathon.coordinator.dto.FENotificationDTO;
 import ru.moscow.hackathon.coordinator.repository.FullBuildingInfoRepository;
 import ru.moscow.hackathon.coordinator.repository.jpa.EventJpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -24,11 +25,26 @@ public class FrontendService {
     FullBuildingInfoRepository infoRepository;
     EventJpaRepository jpaRepository;
 
+    List<String> TYPES = List.of(
+            "P1 <= 0",
+            "P2 <= 0",
+            "T1 < min",
+            "T1 > max",
+            "Аварийная протечка труб в подъезде",
+            "Крупные пожары",
+            "Отсутствие отопления в доме",
+            "Протечка труб в подъезде",
+            "Сильная течь в системе отопления",
+            "Температура в квартире ниже нормативной",
+            "Температура в помещении общего пользования ниже нормативной",
+            "Течь в системе отопления"
+    );
+
     public Mono<Page<FENotificationDTO>> response(
             Pageable pageable
     ) {
         return Mono.just(
-                jpaRepository.findAllBy(pageable)
+                jpaRepository.findAllByNameIn(TYPES, pageable)
         ).map(
                 it -> it.map(v -> {
 
@@ -45,7 +61,8 @@ public class FrontendService {
                             var building = processor.appraise(
                                     infoRepository.info(
                                             v.getUnom()
-                                    )
+                                    ),
+                                    v
                             );
                             if (building == null){
                                 add(info, "Информация о здании", "отсутствует");
@@ -60,6 +77,7 @@ public class FrontendService {
                                 add(info, "Адрес ТП", building.getTpAddress());
                                 add(info, "Тип ТП", building.getTpType());
                                 add(info, "Источник тепла", building.getTpHeatSource());
+                                add(info, "Скорость полного остывания", building.getCoolingSpeedFull() + " ч");
                             }
                             add(info, "Адрес", address);
                             add(info, "Дата решения", eventResolved);

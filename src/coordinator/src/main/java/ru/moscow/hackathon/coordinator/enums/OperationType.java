@@ -34,7 +34,7 @@ public enum OperationType {
     ),
     ADDRESS_REGISTRY_DATA(
             44,
-            List.of(4, 42, 43)
+            List.of(4, 12, 42, 43)
     ),
     DISCONNECTIONS_DATA(
             10,
@@ -42,7 +42,7 @@ public enum OperationType {
     ),
     POWER_EFFICIENCY_DATA(
             12,
-            List.of(0, 2, 3, 4, 5, 6, 9, 11)
+            List.of(0, 2, 3, 4, 5, 6, 7, 9, 11)
     ),
     WALLS_DICTIONARY(
             7,

@@ -32,8 +32,9 @@ public class AddressRegistryDataRepository extends CoordinatedRepository {
     @PostConstruct
     public void init() {
         FIELDS.put(2,"unom");
-        FIELDS.put(3,"geodata");
-        FIELDS.put(4,"geodata_center");
+        FIELDS.put(3, "simple_address");
+        FIELDS.put(4,"geodata");
+        FIELDS.put(5,"geodata_center");
     }
 
     @Override
@@ -46,9 +47,10 @@ public class AddressRegistryDataRepository extends CoordinatedRepository {
                                     insert into address_registry_data(
                                         id,
                                         unom,
+                                        simple_address,
                                         "geoData",
                                         geodata_center
-                                    ) VALUES (?, ?, ?, ?)
+                                    ) VALUES (?, ?, ?, ?, ?)
                                     """,
                                 new BatchPreparedStatementSetter() {
                                     @Override
@@ -57,8 +59,9 @@ public class AddressRegistryDataRepository extends CoordinatedRepository {
                                         var id = UUID.randomUUID();
                                         ps.setObject(1, id); // id
                                         setString(id, ps, 2, current[0]); // unom
-                                        setString(id, ps, 3, current[1]); // geoData
-                                        setString(id, ps, 4, current[2]); // geodata_center
+                                        setString(id, ps, 3, current[1]); // simple_address
+                                        setString(id, ps, 4, current[2]); // geoData
+                                        setString(id, ps, 5, current[3]); // geodata_center
                                     }
 
                                     @Override

@@ -1,4 +1,4 @@
-package ru.moscow.hackathon.coordinator.enums;
+package ru.moscow.hackathon.coordinator.enums.coefficients;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

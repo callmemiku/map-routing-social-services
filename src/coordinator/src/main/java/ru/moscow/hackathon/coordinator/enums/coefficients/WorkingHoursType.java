@@ -1,8 +1,9 @@
-package ru.moscow.hackathon.coordinator.enums;
+package ru.moscow.hackathon.coordinator.enums.coefficients;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.relational.core.sql.In;
 
 import java.util.EnumSet;
 import java.util.Locale;
@@ -31,6 +32,19 @@ public enum WorkingHoursType {
                     .orElseThrow(
                             () -> new IllegalArgumentException("Неизвестный тип потребителя: " + type)
                     );
+        }
+    }
+
+    public static Integer priority(Integer group) {
+        if (group == null) {
+            return -1;
+        } else {
+            return switch (group) {
+                case 3 -> 1;
+                case 2 -> 2;
+                case 1 -> 3;
+                default -> 1;
+            };
         }
     }
 }

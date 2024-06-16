@@ -34,4 +34,10 @@ public class BuildingEntity {
     String tpAddress;
     String tpType;
     String tpHeatSource;
+    Integer employeeCount;
+    String material;
+    String materialBTI;
+    Integer floors;
+    Double fullHeatedSquare;
+    String simpleAddress;
 }

@@ -553,6 +553,10 @@ databaseChangeLog:
                   type: varchar
                   remarks: Класс энергоэффективности (6)
               - column:
+                  name: floors_number
+                  type: int
+                  remarks: Этажность (7)
+              - column:
                   name: building_wear
                   type: numeric
                   remarks: Фактический износ здания, % (9)
@@ -827,3 +831,52 @@ databaseChangeLog:
                   type: numeric
                   constraints:
                     nullable: false
+  - changeSet:
+      id: 23
+      author: me
+      changes:
+        - addColumn:
+            tableName: address_registry_data
+            columns:
+              - column:
+                  name: simple_address
+                  type: varchar
+
+  - changeSet:
+      id: 24
+      author: me
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            tableExists:
+              tableName: power_efficiency_data_vector
+      changes:
+        - createTable:
+            tableName: power_efficiency_data_vector
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: building_vector
+                  type: tsvector
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 25
+      author: me
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            indexExists:
+              indexName: idx_gin_building
+      changes:
+        - sql:
+            endDelimiter: \nGO
+            splitStatements: true
+            sql: CREATE INDEX idx_gin_building ON power_efficiency_data_vector USING gin ("building_vector");
+            stripComments: true

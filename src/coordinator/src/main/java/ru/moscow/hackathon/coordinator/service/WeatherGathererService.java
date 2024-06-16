@@ -56,6 +56,26 @@ public class WeatherGathererService {
                 .map(mapper::map);
     }
 
+    //yyyy-MM-dd
+    public Double weatherOnDate(LocalDate date) {
+        var outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        var formatted = date.format(outputFormatter);
+        if (weathers.containsKey(formatted)) {
+            return weathers.get(formatted);
+        } else {
+            var a = makeApiCall(formatted, formatted);
+            if (a == null) {
+                throw new IllegalStateException("Weather API can't be polled.");
+            }
+            var temps = a.getHourly().getTemperature_2m();
+            var sum = temps.stream()
+                    .mapToDouble(it -> it)
+                    .sum() / temps.size();
+            weathers.put(formatted, sum);
+            return sum;
+        }
+    }
+
     public List<Pair<UUID, Double>> onDate(List<Pair<UUID, String>> date) {
         var inputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         var outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -82,20 +102,7 @@ public class WeatherGathererService {
             var sorted = dates.stream().map(Pair::getSecond).sorted().toList();
             var first = sorted.get(0).format(outputFormatter);
             var last = sorted.get(date.size() - 1).format(outputFormatter);
-            var a = client.get()
-                    .uri(
-                            String.format(
-                                    "https://archive-api.open-meteo.com/v1/era5?latitude=%f&longitude=%f&start_date=%s&end_date=%s&hourly=temperature_2m",
-                                    55.44,
-                                    37.36,
-                                    first,
-                                    last
-                            )
-                    ).accept(MediaType.APPLICATION_JSON)
-                    .retrieve()
-                    .bodyToMono(ArchiveWeatherDTO.class)
-                    .block();
-
+            var a = makeApiCall(first, last);
             if (a == null) {
                 throw new IllegalStateException("HOURLY NULL?");
             }
@@ -129,5 +136,21 @@ public class WeatherGathererService {
             service.process(weathers);
             return Stream.concat(result, rest).toList();
         }
+    }
+
+    private ArchiveWeatherDTO makeApiCall(String begin, String end) {
+        return client.get()
+                .uri(
+                        String.format(
+                                "https://archive-api.open-meteo.com/v1/era5?latitude=%f&longitude=%f&start_date=%s&end_date=%s&hourly=temperature_2m",
+                                55.44,
+                                37.36,
+                                begin,
+                                end
+                        )
+                ).accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(ArchiveWeatherDTO.class)
+                .block();
     }
 }

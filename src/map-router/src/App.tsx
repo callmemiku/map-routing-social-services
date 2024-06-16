@@ -7,7 +7,7 @@ import {Coordinates, Event} from "./entity/Entity";
 import {ColumnDef, flexRender, getCoreRowModel, PaginationState, Row, useReactTable} from "@tanstack/react-table";
 import ControlPanel from "./ControlPanel";
 import type {FeatureCollection} from 'geojson';
-import {CircleLayer, RasterLayer} from "mapbox-gl";
+import {CircleLayer} from "mapbox-gl";
 
 const MAPTILER_API_KEY = import.meta.env.VITE_MAPTILER_API_KEY;
 const URL = import.meta.env.BE_URL ?? "localhost:8080/";
@@ -59,7 +59,7 @@ export const App = () => {
             {header: "Дата окончания", accessorKey: "event.eventEndedDatetime"},
             {header: "Группа", accessorKey: "building.type"},
             {header: "k", accessorKey: "building.weightedEfficiency"},
-            {header: "w", accessorKey: "building.coolingSpeed"}
+            {header: "w, ч", accessorKey: "building.coolingSpeedBelowNormal"}
         ], []
     );
 
@@ -105,7 +105,7 @@ export const App = () => {
                 );
 
                 const priority = event.building.weightedEfficiency;
-                if (priority > 0.85) {
+                if (priority > 0.69) {
                     b_markers_red.push(
                         {
                             "type": "Feature",
@@ -125,7 +125,7 @@ export const App = () => {
                             }
                         }
                     )
-                } else if (priority > 0.34 && priority < 0.86) {
+                } else if (priority > 0.34 && priority < 0.7) {
                     b_markers_yellow.push(
                         {
                             "type": "Feature",
@@ -140,7 +140,13 @@ export const App = () => {
                 console.log(e)
             }
         }
+        console.log('red')
         console.log(b_markers_red)
+        console.log('yellow')
+        console.log(b_markers_yellow)
+        console.log('green')
+        console.log(b_markers_green)
+
         const red: FeatureCollection = {
             type: "FeatureCollection",
             features: b_markers_red
@@ -165,7 +171,7 @@ export const App = () => {
     }
 
     const layerStyleRED: CircleLayer = {
-        id: 'point',
+        id: 'red',
         type: 'circle',
         paint: {
             'circle-radius': 10,
@@ -174,7 +180,7 @@ export const App = () => {
     };
 
     const layerStyleYELLOW: CircleLayer = {
-        id: 'point',
+        id: 'yellow',
         type: 'circle',
         paint: {
             'circle-radius': 10,
@@ -183,7 +189,7 @@ export const App = () => {
     };
 
     const layerStyleGREEN: CircleLayer = {
-        id: 'point',
+        id: 'green',
         type: 'circle',
         paint: {
             'circle-radius': 10,
@@ -236,8 +242,6 @@ export const App = () => {
         getRowCanExpand: (row: Row<TData>) => Boolean
     });
 
-    const [data, setData] = useState([]);
-
     //region MAPS
     const widths_max = new Map();
     widths_max.set('Источник', '10vw')
@@ -245,7 +249,7 @@ export const App = () => {
     widths_max.set("Округ", '2vw')
     widths_max.set("Группа", '2vw')
     widths_max.set("k", '1vw')
-    widths_max.set("w", '1vw')
+    widths_max.set("w, ч", '1vw')
     widths_max.set("Дата начала", '10vw')
     widths_max.set("Дата окончания", '10vw')
 
@@ -264,7 +268,7 @@ export const App = () => {
     widths_min.set("Округ", '4vw')
     widths_min.set("Группа", '4vw')
     widths_min.set("k", '3vw')
-    widths_min.set("w", '3vw')
+    widths_min.set("w, ч", '3vw')
     widths_min.set("Дата начала", '5vw')
     widths_min.set("Дата окончания", '5vw')
     //endregion
@@ -464,19 +468,16 @@ export const App = () => {
                 mapLib={maplibregl}
                 mapStyle={mapTilerMapStyle}
             >
-                <Source id='high' type="geojson" data={
-                    markers_Red
-                }>
-                    <MapLayer {...layerStyleRED} key={'high'} type={"circle"} layout={{visibility: layersVisibility["high"]}}/>
+                <Source key='high' type="geojson" data={markers_Red}>
+                    <MapLayer key={'high'} type={'circle'} {...layerStyleRED} layout={{ visibility: layersVisibility["high"] }}/>
                 </Source>
-                <Source key="mid" type="geojson" data={markers_Yellow}>
-                    <MapLayer {...layerStyleYELLOW} key={'mid'}  layout={{ visibility: layersVisibility["mid"] }}/>
+                <Source key='mid' type="geojson" data={markers_Yellow}>
+                    <MapLayer key={'mid'} type={'circle'} {...layerStyleYELLOW} layout={{ visibility: layersVisibility["mid"] }}/>
                 </Source>
-                <Source key="low" type="geojson" data={markers_Green}>
-                    <MapLayer {...layerStyleGREEN} key={'low'}  layout={{ visibility: layersVisibility["low"] }}/>
+                <Source key={'low'} type="geojson" data={markers_Green}>
+                    <MapLayer  key='low' type={'circle'} {...layerStyleGREEN} layout={{ visibility: layersVisibility["low"] }}/>
                 </Source>
             </GeoMap>
-
             <ControlPanel onChange={setLayersVisibility}/>
         </>
     );

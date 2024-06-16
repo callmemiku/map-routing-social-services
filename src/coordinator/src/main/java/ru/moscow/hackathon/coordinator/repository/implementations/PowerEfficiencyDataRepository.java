@@ -9,13 +9,15 @@ import org.springframework.data.util.Pair;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import ru.moscow.hackathon.coordinator.enums.OperationType;
 import ru.moscow.hackathon.coordinator.repository.CoordinatedRepository;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,12 +41,14 @@ public class PowerEfficiencyDataRepository extends CoordinatedRepository {
         FIELDS.put(5, "employees_number");
         FIELDS.put(6, "building_type");
         FIELDS.put(7, "energy_class");
-        FIELDS.put(8, "building_wear");
-        FIELDS.put(9, "commissioning_year");
+        FIELDS.put(8, "floors_number");
+        FIELDS.put(9, "building_wear");
+        FIELDS.put(10, "commissioning_year");
     }
 
     @Override
     public Mono<List<Pair<UUID, List<String>>>> handle(OperationType type, List<String[]> rows) {
+        List<Pair<UUID, List<String>>> storage = new ArrayList<>();
         log.debug("[POWER EFFICIENCY REPO] saving {} records", rows.size());
         return Mono.just(rows)
                 .map(it ->
@@ -58,9 +62,10 @@ public class PowerEfficiencyDataRepository extends CoordinatedRepository {
                                             employees_number,
                                             building_type,
                                             energy_class,
+                                            floors_number,
                                             building_wear,
                                             commissioning_year
-                                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+                                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                                         """,
                                 new BatchPreparedStatementSetter() {
                                     @Override
@@ -74,8 +79,10 @@ public class PowerEfficiencyDataRepository extends CoordinatedRepository {
                                         setInt(id, ps, 5, current[3]);
                                         setString(id, ps, 6, current[4]);
                                         setString(id, ps, 7, current[5]);
-                                        setDouble(id, ps, 8, current[6]);
-                                        setString(id, ps, 9, current[7]);
+                                        setInt(id, ps, 8, current[6]);
+                                        setDouble(id, ps, 9, current[7]);
+                                        setString(id, ps, 10, current[8]);
+                                        storage.add(Pair.of(id, List.of(current[0])));
                                     }
 
                                     @Override
@@ -84,7 +91,35 @@ public class PowerEfficiencyDataRepository extends CoordinatedRepository {
                                     }
                                 }
                         )
-                ).map(it -> Collections.emptyList());
+                ).map(it -> storage);
+    }
+
+    @Override
+    public Mono<Void> doAfter(List<Pair<UUID, List<String>>> rows) {
+        return Flux.fromIterable(rows)
+                .map(it -> Pair.of(it.getFirst(), it.getSecond().get(0)))
+                .collectList()
+                .doOnNext(it -> {
+                            log.debug("[PE DATA] saving ts_vectors for {} records", it.size());
+                            jdbcTemplate.batchUpdate(
+                                    "insert into power_efficiency_data_vector(id, building_vector) values (?, to_tsvector(?))",
+                                    new BatchPreparedStatementSetter() {
+                                        @Override
+                                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                                            var curr = it.get(i);
+                                            ps.setObject(1, curr.getFirst());
+                                            ps.setString(2, curr.getSecond());
+                                        }
+
+                                        @Override
+                                        public int getBatchSize() {
+                                            return it.size();
+                                        }
+                                    }
+                            );
+                        }
+                ).then()
+                .subscribeOn(Schedulers.boundedElastic());
     }
 
     @Override

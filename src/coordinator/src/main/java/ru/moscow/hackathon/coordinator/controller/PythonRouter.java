@@ -25,6 +25,8 @@ import ru.moscow.hackathon.coordinator.repository.jpa.OdpuJpaRepository;
 import ru.moscow.hackathon.coordinator.repository.jpa.PowerEfficiencyJpaRepository;
 import ru.moscow.hackathon.coordinator.repository.jpa.WallsMaterialsJpaRepository;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/python")
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
