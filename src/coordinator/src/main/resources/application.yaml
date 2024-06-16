@@ -3,8 +3,8 @@ spring:
     multipart:
       enabled: true
       location: ${java.io.tmpdir}
-      max-file-size: 260MB
-      max-request-size: 250MB
+      max-file-size: 25MB
+      max-request-size: 30MB
   datasource:
     driver-class-name: org.postgresql.Driver
     username: postgres
@@ -25,3 +25,5 @@ app:
 logging:
   level:
     ru.moscow.hackathon.coordinator: DEBUG
+  charset:
+    console: UTF-8
