@@ -12,5 +12,5 @@ import java.util.UUID;
 @Repository
 public interface EventJpaRepository extends JpaRepository<EventDTO, UUID> {
     Page<EventDTO> findAllBy(Pageable pageable);
-    Page<EventDTO> findAllByNameIn(List<String> in, Pageable pageable);
+    Page<EventDTO> findAllByNameInAndEventEndedDatetimeIsNull(List<String> in, Pageable pageable);
 }

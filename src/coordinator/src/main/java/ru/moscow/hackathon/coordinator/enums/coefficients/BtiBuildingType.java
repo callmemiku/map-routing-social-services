@@ -38,14 +38,14 @@ public enum BtiBuildingType {
 
     public static Integer byType(String type) {
         if (type == null || type.isEmpty() || type.isBlank()) {
-            return 18;
+            return null;
         } else {
             return EnumSet.allOf(BtiBuildingType.class)
                     .stream()
                     .filter(it -> it.types.contains(type.toUpperCase()))
+                    .map(a -> a.temperature)
                     .findFirst()
-                    .orElse(A)
-                    .temperature;
+                    .orElse(null);
         }
     }
 }

@@ -19,6 +19,7 @@ import ru.moscow.hackathon.coordinator.enums.coefficients.EfficiencyType;
 import ru.moscow.hackathon.coordinator.enums.coefficients.EmployeeCountType;
 import ru.moscow.hackathon.coordinator.enums.coefficients.FullCoolingType;
 import ru.moscow.hackathon.coordinator.enums.coefficients.Materials;
+import ru.moscow.hackathon.coordinator.enums.coefficients.TemperatureByGroup;
 import ru.moscow.hackathon.coordinator.enums.coefficients.WorkingHoursType;
 import ru.moscow.hackathon.coordinator.repository.EventRelationRepository;
 
@@ -121,6 +122,10 @@ public class ConfirmedEventsProcessor {
 
         var normal = BtiBuildingType.byType(it.getBtiClass());
 
+        if (normal == null) {
+            normal = TemperatureByGroup.byGroup(group);
+        }
+
         var coolingBelowNormal = computeBelowNormalCoolingTime(
                 normal,
                 beta,
@@ -152,22 +157,21 @@ public class ConfirmedEventsProcessor {
     }
 
     private Double computeBelowNormalCoolingTime(
-            Integer normal,
+            Integer belowNormal,
             Double beta,
             Double weather
     ) {
+
+        var normal = 24;
+
         if (weather > normal) {
             return -1.0;
         }
 
-        double belowNormal = 18.0;
-
-        if (weather > belowNormal) {
-            belowNormal = weather + 1;
-        }
+        double bn = weather > belowNormal ? weather + 1 : belowNormal;
 
         return beta * Math.log(
-                (normal - weather) / (Math.abs(belowNormal - weather))
+                (normal - weather) / (Math.abs(bn - weather))
         );
     }
 

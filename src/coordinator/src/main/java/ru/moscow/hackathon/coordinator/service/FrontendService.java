@@ -47,7 +47,7 @@ public class FrontendService {
             Pageable pageable
     ) {
         return Mono.just(
-                jpaRepository.findAllByNameIn(TYPES, pageable)
+                jpaRepository.findAllByNameInAndEventEndedDatetimeIsNull(TYPES, pageable)
         ).map(
                 it -> it.map(v -> {
 

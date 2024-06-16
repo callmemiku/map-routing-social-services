@@ -21,14 +21,14 @@ public enum BuildingType {
 
     public static Integer priority(String type) {
         if (type == null) {
-            return -1;
+            return 3;
         } else {
             return EnumSet.allOf(BuildingType.class)
                     .stream()
                     .filter(it -> it.type.contains(type.toUpperCase(Locale.ROOT)))
                     .map(it -> it.priority)
                     .findFirst()
-                    .orElse(2);
+                    .orElse(3);
         }
     }
 }
